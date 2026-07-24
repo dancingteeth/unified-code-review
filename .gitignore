@@ -1,0 +1,13 @@
+# Local drafts (not part of the skill)
+PLAN.md
+_plan/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Local install / CLI scratch
+.skills/
+node_modules/
