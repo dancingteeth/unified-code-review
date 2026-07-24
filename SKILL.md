@@ -13,6 +13,37 @@ description: >-
 
 One process, three passes (+ **§2c pincer** when wiring is at stake — **tiered**, not always full). **Do not** run structure-only review.
 
+**Output is a sensor, not a merge verdict.** Human owns merge, especially on HIGH-risk paths.
+
+## TL;DR — quick start
+
+For a typical PR / branch audit:
+
+1. **Pass 1** — classify risk by blast radius; answer the five questions; decide line-by-line vs skim.
+2. **Pass 1b** — only if the repo defines enforceable workflow laws (task/deploy/issue). Else skip.
+3. **Pass 2 / 2b** — if agent-authored (or you are the reviewing LLM): intent evidence, tests first, trace one level deeper before BLOCKERS.
+4. **§2c** — default **Lite** (between-file prompts on the changed edge). Escalate to Standard/Full only per the tier table. Skip on pure LOW/copy/docs.
+5. **Pass 3** — structural bar (code judo, presumptive blockers) on Pass-1-flagged hunks.
+6. Emit the **output template** → verdict.
+
+You are the LLM reviewer: apply §2b to yourself. Prefer running all passes in one thread; use a thermo-nuclear / structure subagent only for Pass 3 when available.
+
+## Definitions
+
+| Term | Meaning |
+| ---- | ------- |
+| **Code judo** | Prefer deletion: whole branches, helpers, or layers that can disappear while behavior stays the same — simpler, smaller, more direct. |
+| **Pincer (§2c)** | Bidirectional check on wiring: what callers assume vs what callees actually do. Catches integration bugs invisible in single-file review. |
+| **Lite / Standard / Full** | Pincer depth. Default **Lite**. **Full** (isolated three-pass harness) is rare — see [Appendix: Full pincer harness](#appendix-full-pincer-harness). |
+
+**Code judo example:** a 40-line “adapter” that only forwards kwargs to one function → delete the adapter; call the function at the call sites.
+
+**Pincer catch example:** callers treat `getUser(id)` as “throws if missing”; callee returns `null`. Silent NPE / wrong branch downstream. Reconcile: role hypothesis fails — fix contract or call sites (do not BLOCKER on “throws” without opening the callee).
+
+---
+
+## Pass overview
+
 
 | Pass                                    | Focus                                                                                              |
 | --------------------------------------- | -------------------------------------------------------------------------------------------------- |
@@ -20,14 +51,10 @@ One process, three passes (+ **§2c pincer** when wiring is at stake — **tiere
 | **1b. Operational laws**                | Repo overlay only — task traceability, deploy/issue laws from `REVIEWS.md` / `AGENTS.md`           |
 | **2. Agent-authored** (when applicable) | Intent evidence, test hunks first; **agent-as-reviewer** limits (§2b); **call-graph pincer** (§2c) |
 | **3. Structure**                        | Code judo, blockers, decomposition (thermo-nuclear bar)                                            |
-| **Verdict**                             | PASS | ADVISORY | BLOCKERS                                                                         |
+| **Verdict**                             | PASS \| ADVISORY \| BLOCKERS                                                                       |
 
-
-**Output is a sensor, not a merge verdict.** Human owns merge, especially on HIGH-risk paths.
 
 ---
-
-
 
 ## Which rubric wins (repo overlay)
 
@@ -39,13 +66,13 @@ Check in this order; **stop at the first that exists**:
 
 If the repo has `REVIEWS.md`, load it **instead of** relying on the generic risk examples below. Still apply this skill’s **process order** (risk → agent-authored → operational laws when defined → structure → verdict). Repo overlays commonly add **project-specific cross-module invariants** (data-boundary rules, tier/serialization contracts) or **task traceability** laws — use those when present, and let repo thresholds (file size, verdict tiers) **override** this skill’s defaults.
 
+**Pass 1b:** skip when the overlay has **no enforceable workflow laws** (task trackers, issue keys, deploy gates) — even if `REVIEWS.md` exists. Do not invent Taskwarrior (or similar) checks for repos that do not use them.
+
 ---
-
-
 
 ## Pass 1b — Operational laws (repo overlay only)
 
-Run **only when** `REVIEWS.md`, `AGENTS.md`, or `.cursor/rules/`* define enforceable workflow laws (task trackers, issue keys, deploy gates). **Skip** when no such law exists — do not invent Taskwarrior checks for repos that do not use them.
+Run **only when** `REVIEWS.md`, `AGENTS.md`, or `.cursor/rules/`* define enforceable workflow laws. **Skip** otherwise (see above).
 
 **When the overlay defines task traceability** (wherever it lives — a `REVIEWS.md` section, an `AGENTS.md` core law, or a contributor doc):
 
@@ -60,29 +87,25 @@ If the repo rubric already contains a full task-traceability section, **that sec
 
 ---
 
-
-
 ## vs `/thermo-nuclear-code-quality-review` alone
 
-The Cursor Team Kit subagent loads **structure-only** rubric (code judo, 1k-line rule, spaghetti). It does **not** include risk triage, agent-authored discipline, or verdict format.
+Structure-only rubrics (Cursor Team Kit thermo-nuclear subagent, or an equivalent sibling skill) cover **Pass 3 only**. They miss risk triage, agent-authored discipline, and this verdict format.
 
 
 | Invocation                                                                              | Gets you                                        |
 | --------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Subagent **only**                                                                       | ~Pass 3 structure; misses risk and agent checks |
-| **This skill** then subagent (or one agent with this skill loaded)                      | Full unified review                             |
+| Structure subagent / skill **only**                                                     | ~Pass 3 structure; misses risk and agent checks |
+| **This skill** then structure pass (or one agent with this skill loaded)                | Full unified review                             |
 | **Repo-provided review runner** (when the repo ships one that inlines its `REVIEWS.md`) | Full repo rubric                                |
 
 
-**Without a repo runner:** load **this skill** (plus repo `REVIEWS.md` if present). Do **not** expect bare thermo-nuclear to cover everything.
+**Without a repo runner:** load **this skill** (plus repo `REVIEWS.md` if present). If no thermo-nuclear / structure **subagent** is registered in this host, run Pass 3 in the same thread — do not skip structure.
 
 ---
 
-
-
 ## Pass 1 — Risk triage (always first)
 
-Classify by **blast radius**, not diff size ([Rahul GS framing](https://x.com/rahulgs/status/2067257255825686880)).
+Classify by **blast radius**, not diff size (Rahul GS framing — see Sources).
 
 ### Risk levels (generic)
 
@@ -112,11 +135,9 @@ When a change spans levels, report the **highest** and map hunks to levels.
 
 ---
 
-
-
 ## Pass 2 — Agent-authored changes (when applicable)
 
-Treat agent output as **unreviewed external contribution** — plausible code, missing intent ([Osmani — Agentic Code Review](https://addyosmani.com/blog/agentic-code-review/)).
+Treat agent output as **unreviewed external contribution** — plausible code, missing intent (Osmani — see Sources).
 
 **Require intent evidence before deep review:**
 
@@ -129,11 +150,13 @@ Treat agent output as **unreviewed external contribution** — plausible code, m
 2. **Implementation** — line-by-line on §1-flagged hunks.
 3. **CI / guard diffs** — skipped tests, lowered coverage, disabled lint.
 
-**Small diffs:** review works best on chunks you would throw away if derailed ([Giacomelli](https://jangiacomelli.com/blog/3-tips-for-ai-code-review-that-doesnt-suck/)).
+**Small diffs:** review works best on chunks you would throw away if derailed (Giacomelli — see Sources).
 
-### Pass 2b — Agent-as-reviewer (when an LLM performs the review)
+### Pass 2b — Agent-as-reviewer (you are the LLM reviewer)
 
-Applies to **any model** running a branch/repo audit — not GLM-specific. Empirical pattern: [Kilo — agent code review prompt sensitivity](https://blog.kilo.ai/p/glm-52s-code-reviews-are-only-as-424).
+**This agent running the skill is the LLM reviewer.** Apply the rules below to yourself — not only to a nested subagent.
+
+Applies to **any model** running a branch/repo audit. Empirical pattern: Kilo — agent code review prompt sensitivity (see Sources).
 
 
 | Reviewer tends to catch                                             | Reviewer tends to miss                                                                                     |
@@ -157,9 +180,9 @@ Do **not** treat more reasoning effort or a longer prompt as a substitute for (1
 
 ### Pass 2c — Pincer review (call-graph)
 
-Bidirectional pass for **integration defects** — bugs in assumptions *between* modules, invisible in single-file review ([Pipeline](https://vibeagentmaking.com/blog/buggy-code-review-the-pipeline/): defects that killed Knight Capital, Ariane 5, Therac-25 often live between files, not in them). Same geometry as hybrid interprocedural analysis and assume–guarantee checking; run it explicitly when correctness lives in **wiring**.
+Bidirectional pass for **integration defects** — bugs in assumptions *between* modules, invisible in single-file review (Pipeline — see Sources). Run explicitly when correctness lives in **wiring**.
 
-**Origin:** **pincer / pinch** — Roma ([@cesmpi](https://t.me/cesmpi) on Telegram, пинцер манёвр): three isolated passes per symbol — **situation model** ↑, **falsifiable role hypothesis** ↓, **reconcile** (pinch) where they meet. Optional fourth pass for duplicate **clusters**. Roma’s **Full** harness targets large C++ codebases (e.g. game engines); most web/app work needs a lighter tier.
+**Origin:** **pincer / pinch** — Roma (@cesmpi on Telegram, пинцер манёвр): situation model ↑, falsifiable role hypothesis ↓, reconcile (pinch). Roma’s **Full** harness targets large C++ / wide fan-in codebases; most web/app work needs **Lite** or **Standard**.
 
 **Scale to the diff** — default **Lite**, not Full:
 
@@ -169,41 +192,26 @@ Bidirectional pass for **integration defects** — bugs in assumptions *between*
 | **Skip**     | LOW; copy/UI/docs; single-file; no shared boundary touched                                                 | —                                                                                                     | Entire §2c                                                  |
 | **Lite**     | LOW–MEDIUM; 1–2 files; obvious call edge (page → hook → API)                                               | §2b step 1 + **between-file prompts** on that edge only                                               | Isolated harness, reconcile matrix, consolidation           |
 | **Standard** | MEDIUM; shared helper, webhook, auth middleware, token/payment path                                        | **Top-down + reconcile** on **changed symbols only** (1 hop); bottom-up summary for callees you touch | Multi-hop graph propagation, consolidation unless hash hits |
-| **Full**     | HIGH; wide fan-in; refactor across modules; agent can’t explain wiring; very large multi-module call graph | All three **isolated** passes + propagation up the graph; consolidation if duplicates                 | —                                                           |
+| **Full**     | HIGH; wide fan-in; refactor across modules; agent can’t explain wiring; very large multi-module call graph | Isolated three-pass harness — see [Appendix](#appendix-full-pincer-harness)                           | —                                                           |
 
 
-**Heuristic:** if the PR fits in one chat context and has <5 changed symbols across <3 modules → **Lite**. Token redistribution on a landing page → **Lite** (check caller assumes vs callee returns). Middleware used in twelve routes → **Standard**. Auth/session rewrite → **Full**.
-*Context Guard: If the diff/context window is truncated, downgrade §2c to Lite and explicitly list the unseen modules as unverified integration risks.*
+**Heuristic:** if the PR fits in one chat context and has <5 changed symbols across <3 modules → **Lite**. Token redistribution on a landing page → **Lite**. Middleware used in twelve routes → **Standard**. Auth/session rewrite → **Full**.
+
+#### Context Guard
+
+If the diff / context window is truncated, **downgrade §2c to Lite** and **explicitly list** unseen modules as unverified integration risks. Do not claim Full/Standard coverage you did not read.
 
 **When to run (any tier above Skip):** MEDIUM/HIGH hunks from Pass 1; shared helpers, middleware, SDK/webhook clients, event → side-effect paths; any cross-module BLOCKER claim from §2b.
 
-#### Harness discipline (agent runs — **Full** tier only)
+#### Between-file prompts (Lite and above)
 
-For **Lite / Standard**, one agent may run top-down then reconcile in sequence on the **same** symbols — isolation is ideal, not mandatory. For **Full**, run **bottom-up**, **top-down**, and **reconcile** as **independent passes** — separate context, no peeking:
+During top-down + reconcile:
 
+- **Caller/callee assumptions** — Who creates this instance, how long does it live, can it be recreated?
+- **Persistence boundary** — Mutable state: survive restart / crash / deploy / scale-out? In-memory vs disk/queue/DB mismatches are canonical pinch material.
+- **Two mental models** — “What A does” vs “what B expects”; reconcile is the diff — start there, not after line-by-line confirmation.
 
-| Pass                            | Sees                                                           | Must NOT see                                       |
-| ------------------------------- | -------------------------------------------------------------- | -------------------------------------------------- |
-| **Bottom-up** (situation model) | Function body, metrics, **callee cards** already built         | Caller assumptions, refactor advice                |
-| **Top-down** (role hypothesis)  | Signature, representative **call sites**, caller context cards | **Callee body** — judge only from how it is called |
-| **Reconcile** (pinch)           | Both cards + metrics + duplicate candidates                    | — (hypothesis testing only)                        |
-
-
-Context must not leak between passes; top-down that has read the body is **cheating** and invalidates the pinch.
-
-#### The three waves
-
-
-| Wave                  | Direction                     | Build                                                                                                                                                                                                                                                                         |
-| --------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Situation model**   | Bottom-up (callees → callers) | Domain meaning, not paraphrase: **irreducible behavior** vs **ceremony** (plumbing that could move); genuine **side effects** only (I/O, mutation, globals, throws — not ordinary local reads/calls); **manual bookkeeping** that can drift from reality; **error behaviour** |
-| **Role hypothesis**   | Top-down (callers → callees)  | **Falsifiable** one-sentence contract: what callers **should** get; **expected effects** they assume; **concept cohesion** (`shared_concept` | `coincidental_reuse` | `mixed`); **misuse patterns**; **blast radius** from fan-in                                             |
-| **Reconcile** (pinch) | Compare at each node          | Hypothesis testing — does assumed role hold against actual behaviour?                                                                                                                                                                                                         |
-
-
-**Abstraction test:** top-down hypothesis should be obvious from boundary + call sites. **Intent leak** when it isn't (advisory or blocker on MEDIUM+). **Too-clean** role summary that drops essential behaviour is itself a defect.
-
-#### Reconcile verdicts
+#### Reconcile verdicts (Standard / Full)
 
 
 | Verdict       | Meaning                                           | Findings                                                                                                                                                                                              |
@@ -213,45 +221,20 @@ Context must not leak between passes; top-down that has read the body is **cheat
 | **abandon**   | Behaviour contradicts assumed role                | (1) code for role absent → dead/speculative; (2) one unit, competing purposes (`coincidental_reuse`) → SRP split; (3) behaviour unexplained by role → wrong abstraction (inline / split / specialize) |
 
 
-**Lens:** **semantic compression** — repeated *meaning* through one path; unique meaning stays local. **Wrong abstraction costs more than a little duplication** — do not recommend extracting cosmetic look-alikes; prefer **leave duplicated** when in doubt.
+**Lens:** **semantic compression** — repeated *meaning* through one path; unique meaning stays local. **Wrong abstraction costs more than a little duplication** — prefer **leave duplicated** when in doubt.
 
-**Finding bar (reconcile):** actionable only; every finding needs **evidence at a real line** in the symbol under review; categories include `duplication`, `wrong_abstraction_level`, `boundary_violation`, `hidden_side_effect`, `error_handling`, `complexity`, `naming`, `dead_code`.
+**Finding bar:** actionable only; every finding needs **evidence at a real line**; categories include `duplication`, `wrong_abstraction_level`, `boundary_violation`, `hidden_side_effect`, `error_handling`, `complexity`, `naming`, `dead_code`.
 
-#### How to execute (human or agent)
+#### How to execute (Lite / Standard)
 
 1. List **changed symbols** and **call edges** (grep, LSP, graph tool).
-2. **Bottom-up** — build callee cards first; propagate situation summaries up one hop at a time.
-3. **Top-down** — from call sites only, write falsifiable role hypothesis + expected effects (**no callee body**).
-4. **Reconcile** — pinch; map mismatches to failure modes (silent wrong result > loud crash).
-5. **Empirical check** — one targeted test or manual step per non-confirmed reconcile.
+2. **Lite:** open the callee once (§2b step 1); run between-file prompts on that edge; stop.
+3. **Standard:** bottom-up summary for touched callees → top-down role hypothesis from call sites → reconcile (pinch). Isolation between passes is ideal, not mandatory.
+4. **Empirical check** — one targeted test or manual step per non-confirmed reconcile.
 
-**Between-file prompts** (during top-down + reconcile; [Pipeline](https://vibeagentmaking.com/blog/buggy-code-review-the-pipeline/)):
-
-- **Caller/callee assumptions** — Who creates this instance, how long does it live, can it be recreated?
-- **Persistence boundary** — Mutable state: survive restart / crash / deploy / scale-out? In-memory vs disk/queue/DB mismatches are canonical pinch material.
-- **Two mental models** — “What A does” vs “what B expects”; reconcile is the diff — start there, not after line-by-line confirmation.
-
-
-
-#### Consolidation (**Full** tier only — optional duplicate clusters)
-
-After SimHash / structural near-duplicate candidates on **large** changesets, review the **whole cluster** at once (not pairwise):
-
-
-| Verdict            | When                                                                                                                |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| **extract**        | Shared genuine meaning, clear axis of variation, honest name, call sites read clearer after                         |
-| **leave**          | Coincidental similarity, different meanings, or shared abstraction needs parameter soup — **default when in doubt** |
-| **inline / split** | Already over-abstracted; specialize instead                                                                         |
-
-
-Hash alone is not proof — semantic confirm before any extract recommendation.
-
-**Pairs with §2b:** “trace one level deeper” = **Lite** pincer. §2c **Standard** adds reconcile on changed edges; **Full** is Roma’s isolated three-pass graph run.
+**Pairs with §2b:** “trace one level deeper” = **Lite** pincer. **Standard** adds reconcile on changed edges. **Full** = Appendix.
 
 ---
-
-
 
 ## Pass 3 — Thermo-nuclear structural bar
 
@@ -294,8 +277,6 @@ Block unless clearly justified:
 - Types explicit at boundaries?
 - Orchestration unnecessarily sequential?
 
-
-
 ### Finding priority
 
 1. Risk + unanswered Pass 1 questions (HIGH/MEDIUM)
@@ -311,8 +292,6 @@ Block unless clearly justified:
 **Deprioritize:** import order, line length, pre-existing warnings in untouched files.
 
 ---
-
-
 
 ## Output format
 
@@ -364,28 +343,81 @@ PASS | ADVISORY | BLOCKERS
 
 ---
 
+## Workflow with structure subagent
 
-
-## Workflow with thermo-nuclear subagent
-
-When using Task `subagent_type: "thermo-nuclear-code-quality-review"`:
+When a structure-only subagent exists (e.g. Cursor Task `subagent_type: "thermo-nuclear-code-quality-review"`), or a sibling thermo-nuclear **skill** on hosts without that subagent:
 
 1. Parent loads **this skill** (and repo `REVIEWS.md` if it exists).
-2. Parent completes **Pass 1** (+ Pass 1b when repo defines operational laws; Pass 2 / **2b** / **2c** if agent-authored, agent-as-reviewer, or wiring at stake) in the prompt or in chat.
-3. Invoke subagent with diff + file contents **and** explicit instruction: apply Pass 3 only on hunks flagged in Pass 1; output must include Pass 1 summary + verdict from this skill. **Subagent output alone is not enough** for HIGH-risk cross-module wiring — parent must verify §2b and §2c when triggered.
+2. Parent completes **Pass 1** (+ Pass 1b when repo defines operational laws; Pass 2 / **2b** / **2c** if agent-authored, agent-as-reviewer, or wiring at stake).
+3. Invoke structure subagent/skill with diff + file contents **and** explicit instruction: apply Pass 3 only on hunks flagged in Pass 1; output must include Pass 1 summary + verdict from this skill. **Subagent output alone is not enough** for HIGH-risk cross-module wiring — parent must verify §2b and §2c when triggered.
 
-Or skip the subagent: one agent with this skill loaded can run all passes in one thread.
+**If no structure subagent is available:** run Pass 3 in this same thread. Do not omit the structural bar.
 
 ---
 
+## Appendix: Full pincer harness
 
+Use **only** for §2c **Full** tier (HIGH / wide fan-in / unexplained wiring). Lite and Standard must not pay this context cost.
+
+For **Full**, run **bottom-up**, **top-down**, and **reconcile** as **independent passes** — separate context, no peeking:
+
+
+| Pass                            | Sees                                                           | Must NOT see                                       |
+| ------------------------------- | -------------------------------------------------------------- | -------------------------------------------------- |
+| **Bottom-up** (situation model) | Function body, metrics, **callee cards** already built         | Caller assumptions, refactor advice                |
+| **Top-down** (role hypothesis)  | Signature, representative **call sites**, caller context cards | **Callee body** — judge only from how it is called |
+| **Reconcile** (pinch)           | Both cards + metrics + duplicate candidates                    | — (hypothesis testing only)                        |
+
+
+Context must not leak between passes; top-down that has read the body is **cheating** and invalidates the pinch.
+
+### The three waves
+
+
+| Wave                  | Direction                     | Build                                                                                                                                                                                                                                                                         |
+| --------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Situation model**   | Bottom-up (callees → callers) | Domain meaning, not paraphrase: **irreducible behavior** vs **ceremony** (plumbing that could move); genuine **side effects** only (I/O, mutation, globals, throws — not ordinary local reads/calls); **manual bookkeeping** that can drift from reality; **error behaviour** |
+| **Role hypothesis**   | Top-down (callers → callees)  | **Falsifiable** one-sentence contract: what callers **should** get; **expected effects** they assume; **concept cohesion** (`shared_concept` \| `coincidental_reuse` \| `mixed`); **misuse patterns**; **blast radius** from fan-in                                           |
+| **Reconcile** (pinch) | Compare at each node          | Hypothesis testing — does assumed role hold against actual behaviour?                                                                                                                                                                                                         |
+
+
+**Abstraction test:** top-down hypothesis should be obvious from boundary + call sites. **Intent leak** when it isn't (advisory or blocker on MEDIUM+). **Too-clean** role summary that drops essential behaviour is itself a defect.
+
+### Full execution steps
+
+1. List **changed symbols** and **call edges**.
+2. **Bottom-up** — build callee cards first; propagate situation summaries up one hop at a time.
+3. **Top-down** — from call sites only, write falsifiable role hypothesis + expected effects (**no callee body**).
+4. **Reconcile** — pinch; map mismatches to failure modes (silent wrong result > loud crash).
+5. **Empirical check** — one targeted test or manual step per non-confirmed reconcile.
+6. Optional **consolidation** on near-duplicate clusters (below).
+
+### Consolidation (Full only — optional duplicate clusters)
+
+After SimHash / structural near-duplicate candidates on **large** changesets, review the **whole cluster** at once (not pairwise):
+
+
+| Verdict            | When                                                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| **extract**        | Shared genuine meaning, clear axis of variation, honest name, call sites read clearer after                         |
+| **leave**          | Coincidental similarity, different meanings, or shared abstraction needs parameter soup — **default when in doubt** |
+| **inline / split** | Already over-abstracted; specialize instead                                                                         |
+
+
+Hash alone is not proof — semantic confirm before any extract recommendation.
+
+**Analogy (optional, humans):** Full pincer has the same geometry as hybrid interprocedural analysis / assume–guarantee checking — run it when correctness lives in wiring across many modules.
+
+---
 
 ## Sources
+
+Human context and provenance — **not required reading for the agent** to execute this skill.
 
 
 | Contribution                                                                                                                                        | Credit                                                                                                          |
 | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Pincer harness** (isolated bottom-up / top-down / reconcile passes; situation model; falsifiable hypothesis; semantic compression; consolidation) | Roma [@cesmpi](https://t.me/cesmpi)                                                                             |
+| **Pincer harness** (isolated bottom-up / top-down / reconcile; situation model; falsifiable hypothesis; semantic compression; consolidation)        | Roma [@cesmpi](https://t.me/cesmpi)                                                                             |
 | **Between-file review prompts** (caller/callee assumptions, persistence boundaries, two mental models)                                              | [Buggy Code Review: The Pipeline](https://vibeagentmaking.com/blog/buggy-code-review-the-pipeline/)             |
 | Risk by blast radius                                                                                                                                | [Rahul GS](https://x.com/rahulgs/status/2067257255825686880)                                                    |
 | Agent-authored discipline                                                                                                                           | [Addy Osmani — Agentic Code Review](https://addyosmani.com/blog/agentic-code-review/)                           |
@@ -394,5 +426,3 @@ Or skip the subagent: one agent with this skill loaded can run all passes in one
 | Structural bar (Pass 3)                                                                                                                             | Cursor Team Kit `thermo-nuclear-code-quality-review`                                                            |
 | Acceleration / review whiplash                                                                                                                      | [Faros AI](https://www.faros.ai/blog/ai-acceleration-whiplash-takeaways)                                        |
 | Empirical proof of AI code bloat and missing context feedback                                                                                       | [Human-AI Synergy in Agentic Code Review (Zhong et al., arXiv:2603.15911)](https://arxiv.org/html/2603.15911v1) |
-
-
