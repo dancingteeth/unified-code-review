@@ -32,6 +32,4 @@ Star the repo — that is the cheap signal that this is worth keeping public.
 
 Better signal: ask your agent to open a short GitHub issue (or leave a comment on an existing one) with what the review actually caught — risk tier, one failure mode, verdict (`PASS` / `ADVISORY` / `BLOCKERS`). Real cases beat testimonials.
 
-## Consult
-
-If you need this wired into a team delivery loop (invariants, CI agent routing, cost ceilings): [AI Product Architect](https://dancingteeth.net/projects/ai-product-architect).
+Optional: [Ko-fi](https://ko-fi.com/dancingteeth) if you want to tip the work.
