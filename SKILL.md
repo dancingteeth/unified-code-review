@@ -1,12 +1,16 @@
 ---
 name: unified-code-review
 description: >-
-  Full code review rubric — risk triage (blast radius), agent-authored checks,
-  agent-as-reviewer call-chain discipline (Pass 2b), bidirectional call-graph pincer
-  for integration defects (Pass 2c), then thermo-nuclear structural quality. Use
-  instead of /thermo-nuclear-code-quality-review alone, for pre-merge branch audits,
-  PR review, or any repo without REVIEWS.md. Load this skill before invoking the
-  thermo-nuclear subagent.
+  Risk-first code review for PRs and branch audits: blast-radius triage, agent-authored
+  discipline (tests first, intent evidence), call-graph pincer for integration defects
+  between modules, then structural code-judo bar. Use when reviewing PRs, auditing
+  agent-written diffs, catching rubber-stamp green CI, or wiring bugs single-file review
+  misses. Prefer over structure-only thermo-nuclear review alone. Do not use for
+  unrelated coding tasks or as an always-on rule.
+license: MIT
+metadata:
+  author: dancingteeth
+  version: "1.1.0"
 ---
 
 # Unified Code Review

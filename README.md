@@ -16,6 +16,24 @@ Invoke when reviewing a PR/branch, auditing agent-authored diffs, or when you ne
 
 Only `SKILL.md` is the skill. See that file for the rubric.
 
+## Tested with (author dogfood)
+
+Portable `SKILL.md` — not Cursor-only. Used in practice across hosts/models:
+
+| Host | Models |
+| ---- | ------ |
+| Cursor | Composer 2.5 |
+| Kilo | Tencent HY3 |
+| Cline | Qwen 3.5, DeepSeek Flash, DeepSeek Pro |
+
+That is observed use, not a certification matrix. Weaker models still need the TL;DR path (Lite pincer by default); do not expect Full-tier isolation from every stack.
+
+## If it helped
+
+Star the repo — that is the cheap signal that this is worth keeping public.
+
+Better signal: ask your agent to open a short GitHub issue (or leave a comment on an existing one) with what the review actually caught — risk tier, one failure mode, verdict (`PASS` / `ADVISORY` / `BLOCKERS`). Real cases beat testimonials.
+
 ## Consult
 
 If you need this wired into a team delivery loop (invariants, CI agent routing, cost ceilings): [AI Product Architect](https://dancingteeth.net/projects/ai-product-architect).
