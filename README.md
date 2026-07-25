@@ -22,7 +22,7 @@ Portable `SKILL.md` — not Cursor-only. Used in practice across hosts/models:
 
 | Host | Models |
 | ---- | ------ |
-| Cursor | Composer 2.5 |
+| Cursor | Composer 2.5, Grok 4.5, GPT 5.6 Terra |
 | Kilo | Tencent HY3 |
 | Cline | Qwen 3.5, DeepSeek Flash, DeepSeek Pro |
 
