@@ -18,15 +18,13 @@ Only `SKILL.md` is the skill. See that file for the rubric.
 
 ## Tested with (author dogfood)
 
-Portable `SKILL.md` — not Cursor-only. Used in practice across hosts/models:
-
 | Host | Models |
 | ---- | ------ |
 | Cursor | Composer 2.5, Grok 4.5, GPT 5.6 Terra |
 | Kilo | Tencent HY3 |
 | Cline | Qwen 3.5, DeepSeek Flash, DeepSeek Pro |
 
-That is observed use, not a certification matrix. Weaker models still need the TL;DR path (Lite pincer by default); do not expect Full-tier isolation from every stack.
+Observed use, not a certification matrix. Weaker models still need the TL;DR path (Lite pincer by default); do not expect Full-tier isolation from every stack.
 
 ## If it helped
 
