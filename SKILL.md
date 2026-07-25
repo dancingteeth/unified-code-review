@@ -10,7 +10,7 @@ description: >-
 license: MIT
 metadata:
   author: dancingteeth
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Unified Code Review
@@ -155,6 +155,10 @@ Treat agent output as **unreviewed external contribution** — plausible code, m
 3. **CI / guard diffs** — skipped tests, lowered coverage, disabled lint.
 
 **Small diffs:** review works best on chunks you would throw away if derailed (Giacomelli — see Sources).
+
+**Example-bound fixes:** flag when a change handles the demonstrated case (fixture, repro, sample path) but not the general class (other callers, inputs, error modes). Emit as Advisory `[example_bound_fix]` unless it leaves a MEDIUM+ failure mode open — then Blocker.
+
+**Decision audit (optional — MEDIUM+ agent-authored, or when the same agent authored and reviews):** short dump of product/API/error/scope/test choices only — not style nits. For each: why, alternative considered (or “none”), confidence `high | medium | low` + what would falsify it. End with: stand behind in prod? `yes | no` — if no, exact gaps. Do not rewrite code in this step; surface decisions for the human.
 
 ### Pass 2b — Agent-as-reviewer (you are the LLM reviewer)
 
@@ -323,6 +327,12 @@ HIGH | MEDIUM | LOW
 - **Reconcile:** confirmed | revise | abandon — … *(Standard/Full)*
 - **Consolidation:** extract | leave | inline/split — … *(Full only)*
 
+### Decision audit (optional — Pass 2; omit when n/a)
+- **Choices:** … (product / API / error / scope / test only)
+- **Example-bound?** yes | no — …
+- **Open debt:** …
+- **Stand behind in prod?** yes | no — if no, exact gaps
+
 ### Verdict
 PASS | ADVISORY | BLOCKERS
 
@@ -330,7 +340,7 @@ PASS | ADVISORY | BLOCKERS
 - [must-fix] …
 
 ### Advisory
-- [should-fix] …
+- [should-fix] … (use `[example_bound_fix]` when applicable) …
 
 ### Code judo (optional)
 - High-impact structural simplifications only.
