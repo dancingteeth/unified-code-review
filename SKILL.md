@@ -10,7 +10,7 @@ description: >-
 license: MIT
 metadata:
   author: dancingteeth
-  version: "1.3.0"
+  version: "1.3.1"
 ---
 
 # Unified Code Review
@@ -18,6 +18,8 @@ metadata:
 One process, three passes (+ **§2c pincer** when wiring is at stake — **tiered**, not always full). **Do not** run structure-only review.
 
 **Output is a sensor, not a merge verdict.** Human owns merge, especially on HIGH-risk paths.
+
+**Dual-ask:** if the user also wants product status (ready / next / roadmap / progress), answer that **first** (`### Ready`, `### Next (per docs)`), then emit the UCR sensor template. Do not let the rubric crowd out the human's ask.
 
 ## TL;DR — quick start
 
@@ -28,7 +30,7 @@ For a typical PR / branch audit:
 3. **Pass 2 / 2b** — if agent-authored (or you are the reviewing LLM): intent evidence, tests first, trace one level deeper before BLOCKERS.
 4. **§2c** — default **Lite** (between-file prompts on the changed edge). Escalate to Standard/Full only per the tier table. Skip on pure LOW/copy/docs.
 5. **Pass 3** — structural bar (code judo, presumptive blockers) on Pass-1-flagged hunks.
-6. Emit the **output template** → verdict.
+6. Emit the **output template** → verdict. Run the **pre-send checklist** before finishing.
 
 You are the LLM reviewer: apply §2b to yourself. Prefer running all passes in one thread — or, when this session authored the diff, an optional fresh thread/subagent with a review package (Pass 2). Use a thermo-nuclear / structure subagent only for Pass 3 when available.
 
@@ -181,10 +183,11 @@ Applies to **any model** running a branch/repo audit. Empirical pattern: Kilo �
 **Before BLOCKERS on an agent HIGH finding:**
 
 1. **Trace one level deeper** — open the callee/import the finding cites; confirm the failure mode (throw vs return null vs early exit).
-2. **Cross-module claims** — list affected files; line-by-line each boundary; prefer targeted tests / empirical checks over single-pass inference.
-3. **Second pass when stakes are high** — consistency-focused re-run or stronger model when correctness lives in **wiring** (fallback chains, deploy pipelines, auth middleware, event → side-effect paths).
+2. **Live-path gate** — before `[must-fix]` on a helper, schema, or validator: cite ≥1 **production** call site (not tests-only). Unused / tests-only drift → Advisory with `[latent_contract]`, not a blocker.
+3. **Cross-module claims** — list affected files; line-by-line each boundary; prefer targeted tests / empirical checks over single-pass inference.
+4. **Second pass when stakes are high** — consistency-focused re-run or stronger model when correctness lives in **wiring** (fallback chains, deploy pipelines, auth middleware, event → side-effect paths).
 
-Do **not** treat more reasoning effort or a longer prompt as a substitute for (1)–(3). Prompt framing and call-chain depth usually move results more than “think harder.”
+Do **not** treat more reasoning effort or a longer prompt as a substitute for (1)–(4). Prompt framing and call-chain depth usually move results more than “think harder.”
 
 **Parent agent duty:** when delegating to thermo-nuclear or another subagent, complete Pass 1 + §2b + §2c at the **appropriate tier** on HIGH-risk wiring **before** trusting a single subagent PASS.
 
@@ -230,6 +233,8 @@ During top-down + reconcile:
 | **revise**    | Role right; implementation or cohesion needs work | Complexity, hidden effects, drift-prone bookkeeping, errors, naming                                                                                                                                   |
 | **abandon**   | Behaviour contradicts assumed role                | (1) code for role absent → dead/speculative; (2) one unit, competing purposes (`coincidental_reuse`) → SRP split; (3) behaviour unexplained by role → wrong abstraction (inline / split / specialize) |
 
+
+**Hard rule:** `confirmed` is exclusive with findings on that edge. If you emit any finding (blocker, advisory, or nit) for the edge, reconcile is `revise` or `abandon` — never `confirmed`.
 
 **Lens:** **semantic compression** — repeated *meaning* through one path; unique meaning stays local. **Wrong abstraction costs more than a little duplication** — prefer **leave duplicated** when in doubt.
 
@@ -305,6 +310,18 @@ Block unless clearly justified:
 
 ## Output format
 
+When the user also asked for product/progress status, **precede** the template with:
+
+```markdown
+### Ready
+- …
+
+### Next (per docs)
+- … (cite ROADMAP / docs; mark gaps vs code)
+```
+
+Then the UCR sensor:
+
 ```markdown
 ### Risk
 HIGH | MEDIUM | LOW
@@ -342,7 +359,7 @@ PASS | ADVISORY | BLOCKERS
 - [must-fix] …
 
 ### Advisory
-- [should-fix] … (use `[example_bound_fix]` when applicable) …
+- [should-fix] … (use `[example_bound_fix]` or `[latent_contract]` when applicable) …
 
 ### Code judo (optional)
 - High-impact structural simplifications only.
@@ -356,6 +373,19 @@ PASS | ADVISORY | BLOCKERS
 - **BLOCKERS** — HIGH with open Pass 1 questions, any presumptive blocker, or repo law violated
 - **ADVISORY** — no blockers; meaningful simplification still recommended
 - **PASS** — risk acceptable; no structural regression; “it works” is not enough alone
+
+**Consistency lock (non-negotiable):**
+
+- Non-empty `### Blockers` ⇒ `### Verdict` **must** be `BLOCKERS`
+- `ADVISORY` or `PASS` ⇒ `### Blockers` empty or omitted (move items to Advisory / Nits)
+- Decision audit `Stand behind in prod? no` ⇒ cannot be `PASS`; if the gaps are must-fix, verdict is `BLOCKERS`
+
+**Pre-send checklist** (run before finishing — especially on smaller / faster models):
+
+1. Blockers empty iff verdict ≠ `BLOCKERS`
+2. Each `[must-fix]` cites a live production path or runtime call site (not tests-only)
+3. Pincer `confirmed` ⇒ no findings on that edge
+4. Dual-ask answered first when the user asked ready / next / roadmap
 
 ---
 
