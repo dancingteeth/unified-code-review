@@ -38,7 +38,7 @@ Use it for PR/branch audits and agent-authored diffs — **not** as an always-on
 | Host | Models |
 | ---- | ------ |
 | Cursor | Composer 2.5, Grok 4.5, GPT 5.6 Terra |
-| Kilo | Tencent HY3 |
+| Kilo | Tencent HY3, Ling 3.0 Flash (inclusionAI) |
 | Cline | Qwen 3.5, DeepSeek Flash, DeepSeek Pro |
 
 Observed use, not a certification matrix. Weaker models should stay on the TL;DR path (Lite pincer by default).
