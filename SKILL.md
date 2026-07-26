@@ -10,7 +10,7 @@ description: >-
 license: MIT
 metadata:
   author: dancingteeth
-  version: "1.2.0"
+  version: "1.3.0"
 ---
 
 # Unified Code Review
@@ -30,7 +30,7 @@ For a typical PR / branch audit:
 5. **Pass 3** — structural bar (code judo, presumptive blockers) on Pass-1-flagged hunks.
 6. Emit the **output template** → verdict.
 
-You are the LLM reviewer: apply §2b to yourself. Prefer running all passes in one thread; use a thermo-nuclear / structure subagent only for Pass 3 when available.
+You are the LLM reviewer: apply §2b to yourself. Prefer running all passes in one thread — or, when this session authored the diff, an optional fresh thread/subagent with a review package (Pass 2). Use a thermo-nuclear / structure subagent only for Pass 3 when available.
 
 ## Definitions
 
@@ -159,6 +159,8 @@ Treat agent output as **unreviewed external contribution** — plausible code, m
 **Example-bound fixes:** flag when a change handles the demonstrated case (fixture, repro, sample path) but not the general class (other callers, inputs, error modes). Emit as Advisory `[example_bound_fix]` unless it leaves a MEDIUM+ failure mode open — then Blocker.
 
 **Decision audit (optional — MEDIUM+ agent-authored, or when the same agent authored and reviews):** short dump of product/API/error/scope/test choices only — not style nits. For each: why, alternative considered (or “none”), confidence `high | medium | low` + what would falsify it. End with: stand behind in prod? `yes | no` — if no, exact gaps. Do not rewrite code in this step; surface decisions for the human.
+
+**Fresh context (optional — when this session authored the diff):** if the host can start a subagent or new thread, prefer that over same-session self-review. Hand it only a **review package**: Pass 1 risk summary, base/head SHAs (or the diff), and pointers to `REVIEWS.md` / overlay paths — **not** prior justifications or session history. The reviewer runs **this same UCR rubric**; do not invent a second review system. If no subagent/new thread is available, stay in-thread and apply §2b to yourself.
 
 ### Pass 2b — Agent-as-reviewer (you are the LLM reviewer)
 
@@ -357,9 +359,11 @@ PASS | ADVISORY | BLOCKERS
 
 ---
 
-## Workflow with structure subagent
+## Workflow with subagents
 
-When a structure-only subagent exists (e.g. Cursor Task `subagent_type: "thermo-nuclear-code-quality-review"`), or a sibling thermo-nuclear **skill** on hosts without that subagent:
+**Fresh UCR reviewer (optional):** when this session authored the diff and a subagent/new thread is available, dispatch one with the Pass 2 review package and instruct it to run the full UCR skill. Same rubric; no alternate checklist.
+
+**Structure subagent (Pass 3):** when a structure-only subagent exists (e.g. Cursor Task `subagent_type: "thermo-nuclear-code-quality-review"`), or a sibling thermo-nuclear **skill** on hosts without that subagent:
 
 1. Parent loads **this skill** (and repo `REVIEWS.md` if it exists).
 2. Parent completes **Pass 1** (+ Pass 1b when repo defines operational laws; Pass 2 / **2b** / **2c** if agent-authored, agent-as-reviewer, or wiring at stake).
