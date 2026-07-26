@@ -43,16 +43,6 @@ Use it for PR/branch audits and agent-authored diffs — **not** as an always-on
 
 Observed use, not a certification matrix. Weaker models should stay on the TL;DR path (Lite pincer by default).
 
-## Reference dogfood
-
-Compare models on the same target **without leaking the answer key**:
-
-1. Open **`reference/fixture/`** as the agent workspace (not the whole repo).
-2. Load `unified-code-review`; paste [`reference/PROMPT.md`](./reference/PROMPT.md).
-3. **You** score the run with [`reference/maintainers/EXPECTED.md`](./reference/maintainers/EXPECTED.md) and log [`reference/maintainers/SCORECARD.md`](./reference/maintainers/SCORECARD.md).
-
-Isolation rules: [`reference/README.md`](./reference/README.md).
-
 ## If it helped
 
 Star the repo — cheap signal that this is worth keeping public.
