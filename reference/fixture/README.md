@@ -1,7 +1,14 @@
-# UCR reference fixture
+# ucr-reference-fixture
 
-Minimal codebase with **planted bugs** for multi-model dogfood. Do not fix bugs here unless you are maintaining the gold key.
+Small sample app used for code-review exercises: user lookup route, subscription messaging, and generation UI helpers.
 
-Review target: `src/` and `tests/`.
+## Layout
 
-See [`../EXPECTED.md`](../EXPECTED.md) for the answer key (maintainers only until after a run).
+- `src/` — application modules
+- `tests/` — unit tests
+
+## Tests
+
+```bash
+npm test
+```

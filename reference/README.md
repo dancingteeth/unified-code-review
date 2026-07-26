@@ -1,49 +1,51 @@
 # UCR reference harness
 
-Known-buggy mini-repo for **multi-model dogfood**: run the same prompt and score what each model catches.
+Multi-model dogfood: same code, same prompt, compare what each model catches.
 
-## Quick start
+## Isolation (required)
 
-1. Open this repo (or `reference/fixture` as the review target).
-2. Copy the prompt from [`PROMPT.md`](./PROMPT.md) into your agent host (Cursor, Kilo, Cline, …).
-3. Ensure the agent loads the `unified-code-review` skill.
-4. After the run, score against [`EXPECTED.md`](./EXPECTED.md) and record in [`SCORECARD.md`](./SCORECARD.md).
+The agent must **not** see scoring docs or the gold key during a run.
 
-## What is under review
+| Who | What to open / include in context |
+| --- | -------------------------------- |
+| **Agent** | `reference/fixture/` only — ideally as the **workspace root** |
+| **Human** | Copy prompt from [`PROMPT.md`](./PROMPT.md); score with [`maintainers/EXPECTED.md`](./maintainers/EXPECTED.md) |
 
-| Path | Role |
-| ---- | ---- |
-| [`fixture/src/`](./fixture/src/) | Planted bugs (P1, P2, A1) |
-| [`fixture/tests/`](./fixture/tests/) | Tests-only call sites (latent-contract bait) |
+```text
+unified-code-review/          ← human browses repo
+├── reference/
+│   ├── PROMPT.md             ← human copies into chat (not in agent workspace)
+│   ├── maintainers/          ← gold key + scorecard (excluded from agent)
+│   │   ├── EXPECTED.md
+│   │   └── SCORECARD.md
+│   └── fixture/              ← AGENT WORKSPACE ROOT
+│       ├── src/
+│       └── tests/
+```
 
-Run fixture tests (optional sanity check):
+**Why:** `EXPECTED.md` lists every planted bug. `reference/README.md` (this file) is for you. If the agent has the whole monorepo open, it can read the answer key and the run is invalid.
+
+### Valid run checklist
+
+1. Open **`reference/fixture`** as the project folder (File → Open Folder), or start a Kilo/Cline task rooted there.
+2. Load **`unified-code-review`** skill.
+3. Paste [`PROMPT.md`](./PROMPT.md) — scope is `.` / `src/` / `tests/` under the fixture.
+4. After the session, **you** score against [`maintainers/EXPECTED.md`](./maintainers/EXPECTED.md) and log in [`maintainers/SCORECARD.md`](./maintainers/SCORECARD.md).
+
+Invalid if the agent read `maintainers/`, parent `reference/README.md`, or root `README.md` Reference section before finishing.
+
+## Fixture tests (optional)
 
 ```bash
 cd reference/fixture && npm test
 ```
 
-## Planted bug IDs (summary)
+Green tests do not prove P1/P2 are safe — by design.
 
-| ID | UCR lens | Severity |
-| ---- | -------- | -------- |
-| **P1** | §2c pincer — caller/callee contract | must-catch |
-| **P2** | Live runtime path — shadowing / undefined `t2` | must-catch |
-| **A1** | `[latent_contract]` — schema drift, tests-only validator | advisory |
-| **N1** | Guardrail — do not elevate A1 to BLOCKERS | must-not |
+## After scoring
 
-Full evidence and file:line references: [`EXPECTED.md`](./EXPECTED.md).
+If 2–3 models miss the same thing, patch [`SKILL.md`](../SKILL.md). Do not change the fixture to make bugs easier to spot.
 
-## Scoring
+## Advanced case
 
-Use [`SCORECARD.md`](./SCORECARD.md). One row per model run:
-
-- **hit** — finding present with correct severity
-- **miss** — not mentioned
-- **wrong-severity** — found but over/under-classified (e.g. A1 as `[must-fix]`)
-- **format** — verdict ↔ blockers consistency, pincer `confirmed` vs findings
-
-After 2–3 models show the same miss, patch [`SKILL.md`](../SKILL.md) — not the fixture.
-
-## Advanced case (optional)
-
-[`bria_telegram`](https://github.com/dancingteeth/bria_telegram) is a larger real-world target once models pass this fixture. Session exports there are not part of this repo.
+[`bria_telegram`](https://github.com/dancingteeth/bria_telegram) — larger real repo once models pass the isolated fixture.

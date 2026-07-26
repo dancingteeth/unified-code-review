@@ -1,5 +1,7 @@
 # UCR reference scorecard
 
+**Maintainers only.** Score runs after the session — not visible to the agent during review.
+
 Record one row per model run. Copy the table block for each session.
 
 ## Runs

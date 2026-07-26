@@ -45,13 +45,13 @@ Observed use, not a certification matrix. Weaker models should stay on the TL;DR
 
 ## Reference dogfood
 
-Compare models on the same known-buggy target:
+Compare models on the same target **without leaking the answer key**:
 
-1. Open [`reference/PROMPT.md`](./reference/PROMPT.md) — fixed review prompt.
-2. Point the agent at [`reference/fixture/`](./reference/fixture/) with the `unified-code-review` skill loaded.
-3. Score the run against [`reference/EXPECTED.md`](./reference/EXPECTED.md); record in [`reference/SCORECARD.md`](./reference/SCORECARD.md).
+1. Open **`reference/fixture/`** as the agent workspace (not the whole repo).
+2. Load `unified-code-review`; paste [`reference/PROMPT.md`](./reference/PROMPT.md).
+3. **You** score the run with [`reference/maintainers/EXPECTED.md`](./reference/maintainers/EXPECTED.md) and log [`reference/maintainers/SCORECARD.md`](./reference/maintainers/SCORECARD.md).
 
-Planted bugs cover pincer (null vs throw), live-path shadowing, and `[latent_contract]` (tests-only validator). See [`reference/README.md`](./reference/README.md).
+Isolation rules: [`reference/README.md`](./reference/README.md).
 
 ## If it helped
 

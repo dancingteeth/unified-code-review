@@ -1,6 +1,6 @@
 # Gold key — UCR reference fixture
 
-**Maintainers:** use after a model run to score catches. Do not paste into the review prompt.
+**Maintainers only.** Do not open this folder in the agent workspace during a model run.
 
 ## Planted bugs
 
