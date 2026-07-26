@@ -2,6 +2,9 @@
 PLAN.md
 _plan/
 
+# Local multi-model dogfood harness (not shipped)
+reference/
+
 # OS / editor
 .DS_Store
 *.swp
