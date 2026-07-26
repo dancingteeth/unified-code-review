@@ -43,6 +43,16 @@ Use it for PR/branch audits and agent-authored diffs — **not** as an always-on
 
 Observed use, not a certification matrix. Weaker models should stay on the TL;DR path (Lite pincer by default).
 
+## Reference dogfood
+
+Compare models on the same known-buggy target:
+
+1. Open [`reference/PROMPT.md`](./reference/PROMPT.md) — fixed review prompt.
+2. Point the agent at [`reference/fixture/`](./reference/fixture/) with the `unified-code-review` skill loaded.
+3. Score the run against [`reference/EXPECTED.md`](./reference/EXPECTED.md); record in [`reference/SCORECARD.md`](./reference/SCORECARD.md).
+
+Planted bugs cover pincer (null vs throw), live-path shadowing, and `[latent_contract]` (tests-only validator). See [`reference/README.md`](./reference/README.md).
+
 ## If it helped
 
 Star the repo — cheap signal that this is worth keeping public.
