@@ -10,7 +10,7 @@ description: >-
 license: MIT
 metadata:
   author: dancingteeth
-  version: "1.3.1"
+  version: "1.3.2"
 ---
 
 # Unified Code Review
@@ -18,6 +18,8 @@ metadata:
 One process, three passes (+ **§2c pincer** when wiring is at stake — **tiered**, not always full). **Do not** run structure-only review.
 
 **Output is a sensor, not a merge verdict.** Human owns merge, especially on HIGH-risk paths.
+
+**Pipeline contract:** `### Advisory` and `### Nits` are for **humans** to triage. Agent loops / autofix pipelines must act only on `### Blockers` (or an explicit user ask) — do not implement advisories unprompted. Reviewer: emit the sensor and stop; do not start fixing unless asked.
 
 **Dual-ask:** if the user also wants product status (ready / next / roadmap / progress), answer that **first** (`### Ready`, `### Next (per docs)`), then emit the UCR sensor template. Do not let the rubric crowd out the human's ask.
 
@@ -373,6 +375,11 @@ PASS | ADVISORY | BLOCKERS
 - **BLOCKERS** — HIGH with open Pass 1 questions, any presumptive blocker, or repo law violated
 - **ADVISORY** — no blockers; meaningful simplification still recommended
 - **PASS** — risk acceptable; no structural regression; “it works” is not enough alone
+
+**Who acts on what:**
+
+- **Blockers** → safe input for agent fix loops (when the harness enables them)
+- **Advisory / Nits** → human decision only; out of scope for unprompted agent follow-up
 
 **Consistency lock (non-negotiable):**
 

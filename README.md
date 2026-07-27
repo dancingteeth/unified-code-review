@@ -1,6 +1,6 @@
 # unified-code-review
 
-Agent skill for PR / branch review that forces a fixed order: **risk → agent-authored checks → call-graph pincer → structure**. It is a sensor (`PASS` / `ADVISORY` / `BLOCKERS`), not a merge button — humans still own the merge.
+Agent skill for PR / branch review that forces a fixed order: **risk → agent-authored checks → call-graph pincer → structure**. It is a sensor (`PASS` / `ADVISORY` / `BLOCKERS`), not a merge button — humans still own the merge. In agent pipelines, treat **BLOCKERS** as actionable; leave **ADVISORY** / nits for human triage.
 
 ## The problem
 
