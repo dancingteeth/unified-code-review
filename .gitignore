@@ -1,6 +1,9 @@
-# Local drafts (not part of the skill)
+# Local drafts and maintainer material (never part of the installed skill).
+# `npx skills add <owner>/<repo>` ships only tracked files, so anything ignored
+# here is excluded from the pack users receive.
 PLAN.md
 _plan/
+reference/
 
 # OS / editor
 .DS_Store
