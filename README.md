@@ -44,8 +44,11 @@ npx skills add dancingteeth/unified-code-review
 After a release on GitHub, refresh your local copy:
 
 ```bash
+npx skills check                      # anything new?
 npx skills update unified-code-review
 ```
+
+What changed between versions: [`CHANGELOG.md`](./CHANGELOG.md).
 
 Or copy `SKILL.md` **together with `FULL-PINCER.md` and `SOURCES.md`** into your agent skills directory (e.g. `~/.cursor/skills/unified-code-review/`, `.agents/skills/unified-code-review/`) and replace them when the repo updates. `SKILL.md` links to the siblings by relative path, so keep them alongside it.
 
