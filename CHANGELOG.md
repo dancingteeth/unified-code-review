@@ -7,6 +7,12 @@ npx skills check                      # is there anything new?
 npx skills update unified-code-review
 ```
 
+## 1.4.1 — 2026-07-30
+
+- **Degraded mode for partial installs:** if the tier table selects Full but `FULL-PINCER.md` is unavailable, run **Standard** and mark the Full tier unverified — same rule as truncated context: never claim coverage you did not read.
+- Pass 1 now points forward to the repo overlay (repo `REVIEWS.md` risk tiers replace the generic examples), so a strict reader does not classify with defaults before learning the repo overrides them.
+- README pass table gained the **Pass 0** row (establish the change set first).
+
 ## 1.4.0 — 2026-07-30
 
 **Heads-up for updaters: the skill is now three files.** `SKILL.md` links to `FULL-PINCER.md` and `SOURCES.md` by relative path. `npx skills update` handles this for you; if you install by hand, copy all three into the same directory or the on-demand links will dangle.

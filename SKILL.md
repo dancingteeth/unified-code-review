@@ -10,7 +10,7 @@ description: >-
 license: MIT
 metadata:
   author: dancingteeth
-  version: "1.4.0"
+  version: "1.4.1"
 ---
 
 # Unified Code Review
@@ -75,7 +75,7 @@ Prefer all passes in one thread. When this session authored the diff, an optiona
 
 ## Pass 1 — Risk triage (always, after Pass 0)
 
-Classify by **blast radius**, not diff size.
+Classify by **blast radius**, not diff size. The examples below are the **portable default** — a repo `REVIEWS.md` replaces them and may override thresholds (see [Repo overlay](#repo-overlay--which-rubric-wins)).
 
 | Level | Examples |
 | --- | --- |
@@ -198,6 +198,8 @@ Bidirectional pass for **integration defects** — bugs in assumptions *between*
 #### Context Guard
 
 If the diff / context window is truncated, **downgrade §2c to Lite** and **explicitly list** unseen modules as unverified integration risks. Do not claim Full/Standard coverage you did not read.
+
+If the tier table selects **Full** but [`FULL-PINCER.md`](./FULL-PINCER.md) is unavailable (partial install), run **Standard** and mark the Full tier **unverified** in the report.
 
 #### Between-file prompts (Lite and above)
 
