@@ -7,6 +7,11 @@ npx skills check                      # is there anything new?
 npx skills update unified-code-review
 ```
 
+## 1.4.2 — 2026-08-01
+
+- **Presentation ≠ proof** / **trust–spray** (Pass 2): `[unverified_claim]` for unbacked “tested” claims; burst first-touch PRs need issue-first intent before line-by-line.
+- Sources: Kilo — Code Is Cheap. Review Is Expensive.
+
 ## 1.4.1 — 2026-07-30
 
 - **Degraded mode for partial installs:** if the tier table selects Full but `FULL-PINCER.md` is unavailable, run **Standard** and mark the Full tier unverified — same rule as truncated context: never claim coverage you did not read.

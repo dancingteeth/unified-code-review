@@ -10,7 +10,7 @@ description: >-
 license: MIT
 metadata:
   author: dancingteeth
-  version: "1.4.1"
+  version: "1.4.2"
 ---
 
 # Unified Code Review
@@ -138,6 +138,10 @@ Treat agent output as **unreviewed external contribution** — plausible code, m
 
 - PR/MR description, issue link, or short what / why / out of scope.
 - Agent loops: frozen goal spec + verifier output — not the agent’s “done” message.
+
+**Presentation ≠ proof:** polished description, screenshots, or “tested” claims without verifier output, linked CI, or a named runnable path → Advisory `[unverified_claim]` (Blocker on HIGH).
+
+**Trust / spray:** repeated human evidence of intent + tests → skim more (still risk-triage). First-touch + many PRs in one burst → require issue-first intent package before line-by-line.
 
 **Review order:**
 
@@ -327,7 +331,7 @@ Then, only when non-empty:
 - [must-fix] …
 
 ### Advisory
-- [should-fix] … (use `[example_bound_fix]` or `[latent_contract]` when applicable)
+- [should-fix] … (use `[example_bound_fix]`, `[latent_contract]`, or `[unverified_claim]` when applicable)
 ```
 
 ### Add-on block (emit only if the corresponding pass ran)
