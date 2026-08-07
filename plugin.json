@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "unified-code-review",
+  "version": "1.4.3",
+  "description": "Risk-first PR/branch review: blast radius, agent-authored checks, call-graph pincer, structure.",
+  "author": {
+    "name": "dancingteeth",
+    "url": "https://github.com/dancingteeth"
+  },
+  "homepage": "https://github.com/dancingteeth/unified-code-review",
+  "repository": "https://github.com/dancingteeth/unified-code-review",
+  "license": "MIT",
+  "keywords": [
+    "code-review",
+    "agent-skills",
+    "agent-plugins",
+    "pr-review",
+    "pincer"
+  ]
+}

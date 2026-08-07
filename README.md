@@ -2,6 +2,8 @@
 
 Agent skill for PR / branch review that forces a fixed order: **risk → agent-authored checks → call-graph pincer → structure**. It is a sensor (`PASS` / `ADVISORY` / `BLOCKERS`), not a merge button — humans still own the merge. In agent pipelines, treat **BLOCKERS** as actionable; leave **ADVISORY** / nits for human triage.
 
+Also packaged as an [Agent Plugin](https://agent-plugins.org/) (`plugin.json` + `skills/`).
+
 ## The problem
 
 LLM reviews often fail in two predictable ways:
@@ -22,7 +24,7 @@ Structure-only review (code golf / “make it cleaner”) without risk triage ma
 | **2b / 2c. Pincer** | Trace one level deeper before BLOCKERS. Bidirectional wiring check: what callers assume vs what callees do. Default **Lite**, not Full. |
 | **3. Structure** | Code judo — delete branches/layers that can disappear; presumptive blockers (no tests, assertion gaming, spaghetti, …). |
 
-The full rubric and output template live in [`SKILL.md`](./SKILL.md) — that file is what agents load. The rare Full-tier pincer harness sits in [`FULL-PINCER.md`](./FULL-PINCER.md) and provenance in [`SOURCES.md`](./SOURCES.md), both loaded only on demand so the default run stays light.
+The full rubric and output template live in [`skills/unified-code-review/SKILL.md`](./skills/unified-code-review/SKILL.md) — that file is what agents load. The rare Full-tier pincer harness sits in [`FULL-PINCER.md`](./skills/unified-code-review/FULL-PINCER.md) and provenance in [`SOURCES.md`](./skills/unified-code-review/SOURCES.md), both loaded only on demand so the default run stays light.
 
 ## vs structure-only review (`/thermo-nuclear-code-quality-review`)
 
@@ -51,7 +53,9 @@ npx skills update unified-code-review
 
 What changed between versions: [`CHANGELOG.md`](./CHANGELOG.md).
 
-Or copy `SKILL.md` **together with `FULL-PINCER.md` and `SOURCES.md`** into your agent skills directory (e.g. `~/.cursor/skills/unified-code-review/`, `.agents/skills/unified-code-review/`) and replace them when the repo updates. `SKILL.md` links to the siblings by relative path, so keep them alongside it.
+Or copy the `skills/unified-code-review/` directory into your agent skills directory (e.g. `~/.cursor/skills/unified-code-review/`, `.agents/skills/unified-code-review/`) and replace it when the repo updates. `SKILL.md` links to siblings by relative path, so keep the folder intact.
+
+Clients that load [Agent Plugins](https://agent-plugins.org/) can use the repo root (`plugin.json` + `skills/`) as the plugin package.
 
 Use it for PR/branch audits and agent-authored diffs — **not** as an always-on rule (too large for every chat).
 

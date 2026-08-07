@@ -1,11 +1,16 @@
 # Changelog
 
-Versions match `metadata.version` in [`SKILL.md`](./SKILL.md). Update an installed copy with:
+Versions match `metadata.version` in [`SKILL.md`](./skills/unified-code-review/SKILL.md) and `plugin.json`. Update an installed copy with:
 
 ```bash
 npx skills check                      # is there anything new?
 npx skills update unified-code-review
 ```
+
+## 1.4.3 — 2026-08-08
+
+- **Agent Plugins packaging:** add root [`plugin.json`](./plugin.json) and move the skill payload to [`skills/unified-code-review/`](./skills/unified-code-review/) (`SKILL.md`, `FULL-PINCER.md`, `SOURCES.md`). `npx skills add` discovery unchanged.
+- No rubric changes.
 
 ## 1.4.2 — 2026-08-01
 
