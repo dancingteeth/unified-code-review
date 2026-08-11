@@ -7,6 +7,14 @@ npx skills check                      # is there anything new?
 npx skills update unified-code-review
 ```
 
+## 1.4.4 — 2026-08-11
+
+- **Pass 1:** add **Reversibility** and **Verification gap** questions (hard rollback / green-CI-without-coverage raise effective risk).
+- **Sensor contract:** queue bots may map `LOW`+`PASS` to an approve *signal* outside the skill — not numeric auto-approve bands inside it.
+- **Eval reminder:** when reviews are logged, sample whether risk tier and recommendation matched human judgment.
+- Output template: `Reversibility` + `Verification gap` under Review depth.
+- Sources: Claire Vo / Merge Mommy (Lenny’s How I AI) + Intercom cite.
+
 ## 1.4.3 — 2026-08-08
 
 - **Agent Plugins packaging:** add root [`plugin.json`](./plugin.json) and move the skill payload to [`skills/unified-code-review/`](./skills/unified-code-review/) (`SKILL.md`, `FULL-PINCER.md`, `SOURCES.md`). `npx skills add` discovery unchanged.

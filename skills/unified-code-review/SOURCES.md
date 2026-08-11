@@ -4,6 +4,7 @@ Human context and provenance for [`SKILL.md`](./SKILL.md). **Not required readin
 
 | Contribution | Credit |
 | --- | --- |
+| **Reversibility / verification gap** as explicit Pass 1 questions; sensor ≠ auto-merge; eval sampling on logged reviews | [Claire Vo — Merge Mommy / How I AI](https://www.chatprd.ai/how-i-ai/merge-mommy-vercel-eve-ai-bot-for-auto-reviewing-pull-requests) ([Lenny’s Newsletter summary](https://www.lennysnewsletter.com/p/how-i-ai-build-an-ai-code-review)); Intercom AI-approved PRs (speed + revert evidence cited there) |
 | **Pincer harness** (isolated bottom-up / top-down / reconcile; situation model; falsifiable hypothesis; semantic compression; consolidation) | Roma [@cesmpi](https://t.me/cesmpi) |
 | **Between-file review prompts** (caller/callee assumptions, persistence boundaries, two mental models) | [Buggy Code Review: The Pipeline](https://vibeagentmaking.com/blog/buggy-code-review-the-pipeline/) |
 | Risk by blast radius | [Rahul GS](https://x.com/rahulgs/status/2067257255825686880) |

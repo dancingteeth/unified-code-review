@@ -10,23 +10,25 @@ description: >-
 license: MIT
 metadata:
   author: dancingteeth
-  version: "1.4.3"
+  version: "1.4.4"
 ---
 
 # Unified Code Review
 
 Three **core** passes (1 Risk → 2 Agent-authored when applicable → 3 Structure), plus **1b** (repo overlay), **§2b** (always — you are the LLM reviewer), and **§2c** (when wiring is at stake — **tiered**, not always Full). **Do not** run structure-only review.
 
-**Output is a sensor, not a merge verdict.** Human owns merge, especially on HIGH-risk paths.
+**Output is a sensor, not a merge verdict.** Human owns merge, especially on HIGH-risk paths. Queue bots may map `LOW` + `PASS` to an *approve signal* outside this skill — that is policy, not a substitute for review depth. Do **not** invent numeric auto-approve score bands here.
 
 **Pipeline contract:** `### Advisory` and `### Nits` are for **humans** to triage. Agent loops / autofix pipelines must act only on `### Blockers` (or an explicit user ask) — do not implement advisories unprompted. Reviewer: emit the sensor and stop; do not start fixing unless asked.
+
+**Eval (when reviews are logged):** sample whether the risk tier and recommendation matched a human judgment. Same discipline as product evals — logged scores without sampling drift into theater.
 
 **Verdict tokens (byte-identical everywhere):** `PASS` | `ADVISORY` | `BLOCKERS`. Section headings `### Blockers`, `### Advisory`, `### Nits` are fixed strings — omit any section that would be empty; never emit placeholders.
 
 ## TL;DR — quick start
 
 0. **Pass 0** — establish the change set (merge-base / `gh pr diff`); record base/head; note out-of-scope paths.
-1. **Pass 1** — classify risk by blast radius; answer the five questions; decide line-by-line vs skim.
+1. **Pass 1** — classify risk by blast radius; answer the Pass 1 questions; decide line-by-line vs skim.
 2. **Pass 1b** — only if the repo overlay defines enforceable workflow laws (task/deploy/issue). Else skip.
 3. **Pass 2** — if agent-authored: intent evidence, test hunks first.
 4. **§2b** — **always** (you are the reviewing LLM): trace one level deeper before `BLOCKERS`.
@@ -53,7 +55,7 @@ Prefer all passes in one thread. When this session authored the diff, an optiona
 | Pass | Run when | Focus |
 | --- | --- | --- |
 | **0. Change set** | Always | Diff base/head, scope, out-of-scope paths |
-| **1. Risk** | Always | Blast radius, failure modes, what to read line-by-line |
+| **1. Risk** | Always | Blast radius, failure modes, reversibility, verification gap, what to read line-by-line |
 | **1b. Operational laws** | Repo overlay defines enforceable workflow laws | Task traceability, deploy/issue laws |
 | **2. Agent-authored** | Diff is agent-authored | Intent evidence, test hunks first |
 | **2b. Agent-as-reviewer** | **Always** (you are the LLM reviewer) | Call-chain depth, live-path gate, cross-module claims |
@@ -90,8 +92,10 @@ When a change spans levels, report the **highest** and map hunks to levels.
 1. **What could go wrong?** — concrete failure modes.
 2. **Line-by-line vs skim?** — which files/hunks need careful reading.
 3. **Empirical checks?** — specific tests, CI command, manual steps (name them here; run only per [Empirical checks](#empirical-checks)).
-4. **Release guardrails?** — feature flag, staging-only, shadow mode.
-5. **Faster-merge guardrails?** — tests to add, rollback plan.
+4. **Reversibility?** — easy rollback (docs, flag-gated) vs hard/one-way (migrations, irreversible data writes, breaking API removals). Hard to reverse → raise effective risk even when the surface is small.
+5. **Verification gap?** — do tests cover *this* change class, or only adjacent paths? Green CI ≠ coverage for the hunk under review.
+6. **Release guardrails?** — feature flag, staging-only, shadow mode.
+7. **Faster-merge guardrails?** — tests to add, rollback plan.
 
 ### Routing
 
@@ -317,6 +321,8 @@ HIGH | MEDIUM | LOW
 ### Review depth
 - **Line-by-line:** …
 - **Empirical checks:** … (required checks named here; run only if host permits and user asked)
+- **Reversibility:** easy | hard/one-way — …
+- **Verification gap:** covered | adjacent-only | none — …
 - **Release guardrails:** feature flag | staging-only | shadow | none
 - **Change set:** base `…` → head `…` (or PR #N)
 
