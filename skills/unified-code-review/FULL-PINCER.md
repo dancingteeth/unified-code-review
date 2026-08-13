@@ -1,3 +1,8 @@
+---
+tags:
+  - agents
+  - documentation
+---
 # Appendix: Full pincer harness
 
 Load **only** for §2c **Full** tier (HIGH + wide fan-in / cross-module refactor / unexplained wiring). Lite and Standard must not pay this context cost. Tier criteria live in the tier table in [`SKILL.md`](./SKILL.md) — this file assumes Full was already selected.

@@ -1,16 +1,13 @@
 ---
 name: unified-code-review
-description: >-
-  Risk-first code review for PRs and branch audits: blast-radius triage, agent-authored
-  discipline (tests first, intent evidence), call-graph pincer for integration defects
-  between modules, then structural code-judo bar. Use when reviewing PRs, auditing
-  agent-written diffs, catching rubber-stamp green CI, or wiring bugs single-file review
-  misses. Prefer over structure-only thermo-nuclear review alone. Do not use for
-  unrelated coding tasks or as an always-on rule.
+description: "Risk-first code review for PRs and branch audits: blast-radius triage, agent-authored discipline (tests first, intent evidence), call-graph pincer for integration defects between modules, then structural code-judo bar. Use when reviewing PRs, auditing agent-written diffs, catching rubber-stamp green CI, or wiring bugs single-file review misses. Prefer over structure-only thermo-nuclear review alone. Do not use for unrelated coding tasks or as an always-on rule."
 license: MIT
 metadata:
   author: dancingteeth
-  version: "1.4.4"
+  version: 1.4.5
+tags:
+  - agents
+  - documentation
 ---
 
 # Unified Code Review
@@ -28,7 +25,7 @@ Three **core** passes (1 Risk → 2 Agent-authored when applicable → 3 Structu
 ## TL;DR — quick start
 
 0. **Pass 0** — establish the change set (merge-base / `gh pr diff`); record base/head; note out-of-scope paths.
-1. **Pass 1** — classify risk by blast radius; answer the Pass 1 questions; decide line-by-line vs skim.
+1. **Pass 1** — classify risk by blast radius; name journeys at risk; answer the Pass 1 questions; decide line-by-line vs skim.
 2. **Pass 1b** — only if the repo overlay defines enforceable workflow laws (task/deploy/issue). Else skip.
 3. **Pass 2** — if agent-authored: intent evidence, test hunks first.
 4. **§2b** — **always** (you are the reviewing LLM): trace one level deeper before `BLOCKERS`.
@@ -55,7 +52,7 @@ Prefer all passes in one thread. When this session authored the diff, an optiona
 | Pass | Run when | Focus |
 | --- | --- | --- |
 | **0. Change set** | Always | Diff base/head, scope, out-of-scope paths |
-| **1. Risk** | Always | Blast radius, failure modes, reversibility, verification gap, what to read line-by-line |
+| **1. Risk** | Always | Blast radius, failure modes, journeys at risk, reversibility, verification gap, what to read line-by-line |
 | **1b. Operational laws** | Repo overlay defines enforceable workflow laws | Task traceability, deploy/issue laws |
 | **2. Agent-authored** | Diff is agent-authored | Intent evidence, test hunks first |
 | **2b. Agent-as-reviewer** | **Always** (you are the LLM reviewer) | Call-chain depth, live-path gate, cross-module claims |
@@ -89,11 +86,11 @@ When a change spans levels, report the **highest** and map hunks to levels.
 
 ### Answer before deep review
 
-1. **What could go wrong?** — concrete failure modes.
+1. **What could go wrong?** — concrete failure modes, plus the **user journeys** this change puts at risk (login, checkout, webhook replay) — not only which files changed. Copy/docs/internal-only → `none`.
 2. **Line-by-line vs skim?** — which files/hunks need careful reading.
-3. **Empirical checks?** — specific tests, CI command, manual steps (name them here; run only per [Empirical checks](#empirical-checks)).
+3. **Empirical checks?** — specific tests, CI command, manual steps (name them here; run only per [Empirical checks](#empirical-checks)). On MEDIUM+ user-facing diffs, name at least one check per at-risk journey.
 4. **Reversibility?** — easy rollback (docs, flag-gated) vs hard/one-way (migrations, irreversible data writes, breaking API removals). Hard to reverse → raise effective risk even when the surface is small.
-5. **Verification gap?** — do tests cover *this* change class, or only adjacent paths? Green CI ≠ coverage for the hunk under review.
+5. **Verification gap?** — do tests cover *this* change class, or only adjacent paths? Green CI ≠ coverage for the hunk under review. Token: `covered` | `adjacent-only` | `named-unrun` | `none`. Use `named-unrun` when this review listed checks but did not execute them (the default).
 6. **Release guardrails?** — feature flag, staging-only, shadow mode.
 7. **Faster-merge guardrails?** — tests to add, rollback plan.
 
@@ -178,7 +175,7 @@ When this session authored the diff and the host can start a subagent or new thr
 **Before `BLOCKERS` on a HIGH finding:**
 
 1. **Trace one level deeper** — open the callee/import the finding cites; confirm the failure mode (throw vs return null vs early exit). This is the **Lite** pincer.
-2. **Live-path gate** — before `[must-fix]` on a helper, schema, or validator: cite ≥1 **production** call site (not tests-only). Unused / tests-only drift → Advisory with `[latent_contract]`, not a blocker.
+2. **Live-path gate** — before `[must-fix]` on a helper, schema, or validator: cite ≥1 **production** call site (not tests-only) **that this diff can reach**. Unused / tests-only drift → Advisory `[latent_contract]`. A failure mode already present on the base branch and not newly exposed or widened by this diff → Advisory `[preexisting]`, not a blocker.
 3. **Cross-module claims** — list affected files; line-by-line each boundary; prefer targeted tests / empirical checks over single-pass inference.
 4. **Second pass when stakes are high** — consistency-focused re-run or stronger model when correctness lives in **wiring** (fallback chains, deploy pipelines, auth middleware, event → side-effect paths).
 
@@ -238,7 +235,7 @@ If the tier table selects **Full** but [`FULL-PINCER.md`](./FULL-PINCER.md) is u
 
 ### Empirical checks
 
-Name concrete checks in Pass 1 and after non-confirmed reconciles. **Run** a check only if the host permits **and** the user asked for verification; otherwise emit it as a **required check** under `Empirical checks` in the report and leave execution to the human. Do not start fixing or inventing tests as part of the sensor emit (pipeline contract).
+Name concrete checks in Pass 1 and after non-confirmed reconciles. On MEDIUM+ user-facing diffs, name at least one check per at-risk journey (happy path is enough; add an edge or adversarial case only for auth, payments, or state-machine changes). **Run** a check only if the host permits **and** the user asked for verification; otherwise emit it as a **required check** under `Empirical checks` in the report and leave execution to the human. Do not start fixing, inventing tests, or spinning up the app as part of the sensor emit (pipeline contract).
 
 ---
 
@@ -319,10 +316,11 @@ HIGH | MEDIUM | LOW
 - …
 
 ### Review depth
+- **Journeys at risk:** … | none
 - **Line-by-line:** …
 - **Empirical checks:** … (required checks named here; run only if host permits and user asked)
 - **Reversibility:** easy | hard/one-way — …
-- **Verification gap:** covered | adjacent-only | none — …
+- **Verification gap:** covered | adjacent-only | named-unrun | none — …
 - **Release guardrails:** feature flag | staging-only | shadow | none
 - **Change set:** base `…` → head `…` (or PR #N)
 
@@ -330,14 +328,14 @@ HIGH | MEDIUM | LOW
 PASS | ADVISORY | BLOCKERS
 ```
 
-Then, only when non-empty:
+Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then plus a live path this diff can reach. **Structural** presumptive blockers (#1–#7, #14) cite a line only — do not invent a repro.
 
 ```markdown
 ### Blockers
-- [must-fix] …
+- [must-fix] … — given … / when … / then … (live path: …)
 
 ### Advisory
-- [should-fix] … (use `[example_bound_fix]`, `[latent_contract]`, or `[unverified_claim]` when applicable)
+- [should-fix] … (use `[example_bound_fix]`, `[latent_contract]`, `[preexisting]`, or `[unverified_claim]` when applicable)
 ```
 
 ### Add-on block (emit only if the corresponding pass ran)
@@ -389,7 +387,7 @@ Then, only when non-empty:
 **Pre-send checklist** (run before finishing — especially on smaller / faster models):
 
 1. `### Blockers` omitted iff verdict ≠ `BLOCKERS`; no empty or placeholder-filled sections
-2. Each `[must-fix]` cites a live production path or runtime call site (not tests-only)
+2. Each **behavioral** `[must-fix]` cites a live production path this diff can reach (not tests-only, not base-only) and a given / when / then repro. Structural blockers cite a line. `[preexisting]` stays Advisory.
 3. Pincer `confirmed` ⇒ no findings on that edge
 4. Dual-ask answered first when the user asked ready / next / roadmap
 5. Change set (base/head) recorded; HIGH used §2c per tier table (never Skip)

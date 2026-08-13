@@ -1,3 +1,8 @@
+---
+tags:
+  - agents
+  - documentation
+---
 # Sources — Unified Code Review
 
 Human context and provenance for [`SKILL.md`](./SKILL.md). **Not required reading for the agent** to execute the skill; it is kept out of the skill file to save context on every run.
@@ -15,3 +20,4 @@ Human context and provenance for [`SKILL.md`](./SKILL.md). **Not required readin
 | Acceleration / review whiplash | [Faros AI](https://www.faros.ai/blog/ai-acceleration-whiplash-takeaways) |
 | Presentation ≠ proof; trust/spray | [Kilo — Code Is Cheap. Review Is Expensive.](https://blog.kilo.ai/p/code-is-cheap-review-is-expensive) |
 | Empirical proof of AI code bloat and missing context feedback | [Human-AI Synergy in Agentic Code Review (Zhong et al., arXiv:2603.15911)](https://arxiv.org/html/2603.15911v1) |
+| **Journeys at risk**; verification gap `named-unrun`; `[preexisting]` vs PR-attributable; given/when/then on behavioral blockers | [Ito](https://www.ito.ai/) (execution-based PR review). Methods only — this skill does not build or drive the app. |

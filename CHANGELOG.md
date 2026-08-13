@@ -1,3 +1,8 @@
+---
+tags:
+  - agents
+  - documentation
+---
 # Changelog
 
 Versions match `metadata.version` in [`SKILL.md`](./skills/unified-code-review/SKILL.md) and `plugin.json`. Update an installed copy with:
@@ -6,6 +11,15 @@ Versions match `metadata.version` in [`SKILL.md`](./skills/unified-code-review/S
 npx skills check                      # is there anything new?
 npx skills update unified-code-review
 ```
+
+## 1.4.5 — 2026-08-13
+
+- **Pass 1:** name **user journeys at risk**, not only files / blast-radius labels.
+- **Verification gap** tokens: `covered` | `adjacent-only` | `named-unrun` | `none`. Default `named-unrun` when checks are listed but not executed in this review.
+- **Live-path gate:** failure modes already on the base branch and not newly exposed by this diff → Advisory `[preexisting]`, not a blocker.
+- **Behavioral blockers:** given / when / then repro plus a live path this diff can reach. Structural blockers still cite a line only.
+- Empirical checks: on MEDIUM+ user-facing diffs, name at least one check per at-risk journey. Still do not run (or spin up the app) unless the user asked.
+- Sources: Ito (execution-based PR review) — methods only, not their sandbox.
 
 ## 1.4.4 — 2026-08-11
 
