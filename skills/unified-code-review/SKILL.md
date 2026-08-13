@@ -4,7 +4,7 @@ description: "Risk-first code review for PRs and branch audits: blast-radius tri
 license: MIT
 metadata:
   author: dancingteeth
-  version: 1.4.5
+  version: "1.4.5"
 tags:
   - agents
   - documentation
