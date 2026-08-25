@@ -43,6 +43,32 @@ Structure-only rubrics (Cursor Team Kit's thermo-nuclear subagent, or an equival
 
 Without a repo runner, load this skill plus the repo's `REVIEWS.md` if present. If no structure subagent is registered in your host, the skill runs Pass 3 in-thread rather than skipping it.
 
+## Writing a `REVIEWS.md`
+
+Repo overlays win on **thresholds and laws**; this skill still owns **process order**. A law the reviewer can enforce is three parts, not a vibe:
+
+1. **Path glob** — which changed files it applies to (`src/api/**`, `**/*.tsx`).
+2. **Flag** — the bad pattern, specific enough to match a line.
+3. **Want** — what should be there instead.
+
+Apply only to the pull request’s changed files, not the rest of the tree. Quote the law under any finding it produced.
+
+```markdown
+### `src/api/**`
+Endpoints must validate request input before using it. Flag any handler that
+reads request data without validating it first; name the validation to add.
+
+### `src/**/*.tsx`
+Custom React hooks must be named with a `use` prefix and live in `src/hooks`.
+Flag any hook declared elsewhere or named without the prefix.
+
+### `**/*.py`
+We are migrating from `requests` to `httpx`. Flag any **new** import of
+`requests` and suggest the `httpx` equivalent.
+```
+
+A sentence of good intentions (“keep the API clean”) is not a law. Unstructured overlay text still counts when it is already enforceable (file-size caps, task UUIDs, deploy gates).
+
 ## Install
 
 ```bash

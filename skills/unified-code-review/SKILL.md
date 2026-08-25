@@ -4,7 +4,7 @@ description: "Risk-first code review for PRs and branch audits: blast-radius tri
 license: MIT
 metadata:
   author: dancingteeth
-  version: "1.4.5"
+  version: "1.4.6"
 tags:
   - agents
   - documentation
@@ -97,8 +97,8 @@ When a change spans levels, report the **highest** and map hunks to levels.
 ### Routing
 
 - **HIGH** → default `BLOCKERS` until questions answered; never `PASS` on structure alone; **§2c per tier table** (Standard or Full — never Skip).
-- **MEDIUM** → line-by-line on boundaries; **§2c per tier table** when the diff touches shared helpers or multi-route behavior; tests required for behavior changes.
-- **LOW** → structure + spot-check; lean on CI; **§2c Skip** unless a cross-module smell is obvious (then Lite).
+- **MEDIUM** → line-by-line on boundaries; **§2c per tier table** when the diff touches shared helpers or multi-route behavior; tests required for behavior changes. Open product / API-shape / irreversible-data judgement → cannot `PASS` (see Verdict rules).
+- **LOW** → structure + spot-check; lean on CI; **§2c Skip** unless a cross-module smell is obvious (then Lite). Style, copy, and docs nits do not by themselves block `PASS`.
 
 ---
 
@@ -111,6 +111,8 @@ Check in this order; **stop at the first that exists**:
 3. **This skill** — portable default when nothing else is defined.
 
 If the repo has `REVIEWS.md`, load it **instead of** the generic risk examples above. Still apply this skill’s **process order** (change set → risk → operational laws when defined → agent-authored when applicable → §2b always → §2c when wiring → structure → verdict). Overlays commonly add **project-specific cross-module invariants** (data-boundary rules, tier/serialization contracts) or **task traceability** laws — use those when present, and let repo thresholds (file size, verdict tiers) **override** this skill’s defaults.
+
+**Overlay law shape** (apply when the overlay states a law this way; unstructured overlay text still counts if it is enforceable): path glob + what to **flag** + what you **want** instead. A sentence of good intentions is not a law. Check **changed** files matching the glob only — not the rest of the repo. Overlay laws **add** to this skill’s passes; they do not skip Pass 1–3. When a finding comes from an overlay law, **quote the law** under the finding.
 
 ## Pass 1b — Operational laws (repo overlay only)
 
@@ -335,7 +337,7 @@ Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then 
 - [must-fix] … — given … / when … / then … (live path: …)
 
 ### Advisory
-- [should-fix] … (use `[example_bound_fix]`, `[latent_contract]`, `[preexisting]`, or `[unverified_claim]` when applicable)
+- [should-fix] … (use `[example_bound_fix]`, `[latent_contract]`, `[preexisting]`, `[unverified_claim]`, or `[needs_judgement]` when applicable)
 ```
 
 ### Add-on block (emit only if the corresponding pass ran)
@@ -369,8 +371,8 @@ Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then 
 **Verdict rules:**
 
 - `BLOCKERS` — HIGH with open Pass 1 questions, any presumptive blocker, or repo law violated
-- `ADVISORY` — no blockers; meaningful simplification still recommended
-- `PASS` — risk acceptable; no structural regression; “it works” is not enough alone
+- `ADVISORY` — no blockers; meaningful simplification still recommended, **or** a product / API-shape / irreversible-data choice still needs a person's judgement (`[needs_judgement]`)
+- `PASS` — risk acceptable; no structural regression; no open product / API-shape / irreversible-data judgement. “It works” is not enough alone. HIGH never `PASS` on structure alone. Style, copy, and docs nits do not by themselves block `PASS`.
 
 **Who acts on what:**
 
@@ -382,7 +384,7 @@ Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then 
 - `### Verdict` is the **only** sensor verdict; section-scoped verdicts (Task coverage, reconcile) never substitute for it
 - Non-empty `### Blockers` ⇒ `### Verdict` **must** be `BLOCKERS`
 - `ADVISORY` or `PASS` ⇒ omit `### Blockers` entirely (move items to Advisory / Nits)
-- Decision audit `Stand behind in prod? no` ⇒ cannot be `PASS`; if the gaps are must-fix, verdict is `BLOCKERS`
+- Open product / API-shape / irreversible-data judgement (including `[needs_judgement]` or decision audit `Stand behind in prod? no`) ⇒ cannot be `PASS`; if the gaps are must-fix, verdict is `BLOCKERS`
 
 **Pre-send checklist** (run before finishing — especially on smaller / faster models):
 
@@ -391,6 +393,7 @@ Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then 
 3. Pincer `confirmed` ⇒ no findings on that edge
 4. Dual-ask answered first when the user asked ready / next / roadmap
 5. Change set (base/head) recorded; HIGH used §2c per tier table (never Skip)
+6. `PASS` ⇒ no open product / API-shape / irreversible-data judgement and no `[needs_judgement]`
 
 ---
 

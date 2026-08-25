@@ -12,6 +12,13 @@ npx skills check                      # is there anything new?
 npx skills update unified-code-review
 ```
 
+## 1.4.6 — 2026-08-25
+
+- **Overlay law shape:** when a repo overlay states a law as path glob + what to flag + what you want instead, apply it to **changed** files matching the glob and quote the law under the finding. Unstructured overlay text still counts if it is enforceable. A sentence of good intentions is not a law.
+- **PASS veto:** open product / API-shape / irreversible-data judgement (`[needs_judgement]`) cannot be `PASS` even when structure is clean. Style, copy, and docs nits do not by themselves block `PASS`. HIGH still never `PASS` on structure alone.
+- README: authoring examples for `REVIEWS.md` laws.
+- Sources: Sourcery (review-rule shape + “needs a person's judgement”) — methods only, not their bot or scanner.
+
 ## 1.4.5 — 2026-08-13
 
 - **Pass 1:** name **user journeys at risk**, not only files / blast-radius labels.
