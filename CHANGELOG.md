@@ -12,6 +12,14 @@ npx skills check                      # is there anything new?
 npx skills update unified-code-review
 ```
 
+## 1.4.7 — 2026-08-26
+
+- **Portable default laws** (Pass 1, changed files only): `[authz]` (IDOR / client-only filter / open storage rules / hardcoded secrets), `[slopsquat]` (new dep missing from lockfile, unresolved, or near-typo), `[instruction_injection]` (hidden operator text in agent config — Advisory until a live path).
+- **Noise filter** (verdict hygiene): speculative DoS, rate-limits, open-redirect without a session steal, memory/CPU exhaustion, unproven input-validation stay off `BLOCKERS`.
+- Pass 0: size does not set risk tier; lockfiles in-scope only as evidence for unresolved new deps.
+- Pass 3: name throwaway-code / piecemeal-growth anti-patterns (same bar, not new blocker rows). Distinct from #12 (product-LLM user input).
+- Sources: xda + vietanh (authz / slopsquat); Anthropic claude-code-security-review (noise filter + IDOR taxonomy); Big Ball of Mud (named anti-patterns).
+
 ## 1.4.6 — 2026-08-25
 
 - **Overlay law shape:** when a repo overlay states a law as path glob + what to flag + what you want instead, apply it to **changed** files matching the glob and quote the law under the finding. Unstructured overlay text still counts if it is enforceable. A sentence of good intentions is not a law.

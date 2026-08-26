@@ -23,7 +23,7 @@ Structure-only review (code golf / “make it cleaner”) without risk triage ma
 | Pass | Focus |
 | ---- | ----- |
 | **0. Change set** | Establish the diff first (merge-base / `gh pr diff`); record base/head. A green review of the wrong diff is still a rubber stamp. |
-| **1. Risk** | Blast radius first (auth, payments, migrations ≠ copy tweaks); failure modes; **journeys at risk**; reversibility; verification gap (`named-unrun` when checks are listed but not run). |
+| **1. Risk** | Blast radius first (auth, payments, migrations ≠ copy tweaks); **authz/IDOR** on changed handlers; failure modes; **journeys at risk**; reversibility; verification gap (`named-unrun` when checks are listed but not run). |
 | **1b. Ops laws** | Only if the repo defines them (`REVIEWS.md` / task / deploy gates). Else skip. |
 | **2. Agent-authored** | Intent evidence; **tests first**; treat agent output as unreviewed external code. |
 | **2b / 2c. Pincer** | Trace one level deeper before BLOCKERS. Bidirectional wiring check: what callers assume vs what callees do. Default **Lite**, not Full. |
@@ -51,7 +51,7 @@ Repo overlays win on **thresholds and laws**; this skill still owns **process or
 2. **Flag** — the bad pattern, specific enough to match a line.
 3. **Want** — what should be there instead.
 
-Apply only to the pull request’s changed files, not the rest of the tree. Quote the law under any finding it produced.
+Apply only to the pull request’s changed files, not the rest of the tree. Quote the law under any finding it produced. Overlay laws **add** to this skill’s portable defaults (`[authz]`, `[slopsquat]`, `[instruction_injection]`); they do not skip them unless the overlay states a stricter equivalent.
 
 ```markdown
 ### `src/api/**`
