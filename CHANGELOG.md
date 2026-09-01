@@ -12,6 +12,13 @@ npx skills check                      # is there anything new?
 npx skills update unified-code-review
 ```
 
+## 1.4.8 — 2026-09-01
+
+- **Live-path gate** (§2b) runs before any `[must-fix]`, not only HIGH — MEDIUM stretched `[authz]` no longer skips it.
+- **`[authz]` capability-token carve-out:** lookup by a token the client cannot mint is not IDOR unless the review shows an attacker-controlled way to present it; else Advisory `[latent_contract]`. Noise filter now says **proven** `[authz]`.
+- **Pass 3 #1** is deletion of a layer/branch. Extracting a shared helper is Advisory / Code judo, not a presumptive blocker (and not #5).
+- Pre-send: keyspace claims must show bit-width arithmetic; third-party “will 400 / model does not exist” without a current-docs cite → `[unverified_claim]`.
+
 ## 1.4.7 — 2026-08-26
 
 - **Portable default laws** (Pass 1, changed files only): `[authz]` (IDOR / client-only filter / open storage rules / hardcoded secrets), `[slopsquat]` (new dep missing from lockfile, unresolved, or near-typo), `[instruction_injection]` (hidden operator text in agent config — Advisory until a live path).

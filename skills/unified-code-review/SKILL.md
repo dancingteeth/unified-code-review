@@ -4,7 +4,7 @@ description: "Risk-first code review for PRs and branch audits: blast-radius tri
 license: MIT
 metadata:
   author: dancingteeth
-  version: "1.4.7"
+  version: "1.4.8"
 tags:
   - agents
   - documentation
@@ -91,7 +91,7 @@ HIGH already names auth/secrets as blast radius. These are the line-level flags.
 
 | Applies to | Flag | Want |
 | --- | --- | --- |
-| Changed HTTP/RPC handlers, routes, API files | `[authz]` — handler returns a collection/object with **no server-side** owner/authz constraint (query has no `user_id` / owner / org filter; authz only in the client; or the server serializes a full set and the UI `.filter`s it) | Ownership / RLS / policy on the query **before** serialize |
+| Changed HTTP/RPC handlers, routes, API files | `[authz]` — handler returns a collection/object with **no server-side** owner/authz constraint (query has no `user_id` / owner / org filter; authz only in the client; or the server serializes a full set and the UI `.filter`s it) | Ownership / RLS / policy on the query **before** serialize. Lookup by a token the **client cannot mint** (inline-button callback, signed cookie the UA already holds) is not IDOR unless the review shows an attacker-controlled way to present that token — else Advisory `[latent_contract]` |
 | Changed storage / bucket / ACL policy files | `[authz]` — public anonymous write, or `allow … if true` (open S3 / Firebase / Supabase-style rules) | Authenticated + resource-owner policy |
 | Any changed source (not a test fixture of a fake key) | `[authz]` — hardcoded JWT secret, API key, or token literal | Env / secret manager |
 | Changed package manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, …) | `[slopsquat]` — newly added package not in the lockfile, does not resolve, or is a near-typo of a well-known name | Lockfile-resolved, real package; drop or replace the name |
@@ -189,7 +189,7 @@ When this session authored the diff and the host can start a subagent or new thr
 
 **Review prompt (agent or human):** ask for **behavior and consistency across routes/modules**, not only “block production PR” or a security checklist. **Name cross-cutting invariants** to verify (from `REVIEWS.md`, ADRs, or architecture docs when present).
 
-**Before `BLOCKERS` on a HIGH finding:**
+**Before any `[must-fix]` (any risk tier):**
 
 1. **Trace one level deeper** — open the callee/import the finding cites; confirm the failure mode (throw vs return null vs early exit). This is the **Lite** pincer.
 2. **Live-path gate** — before `[must-fix]` on a helper, schema, or validator: cite ≥1 **production** call site (not tests-only) **that this diff can reach**. Unused / tests-only drift → Advisory `[latent_contract]`. A failure mode already present on the base branch and not newly exposed or widened by this diff → Advisory `[preexisting]`, not a blocker.
@@ -272,7 +272,7 @@ Block unless clearly justified:
 
 | # | Blocker |
 | --- | --- |
-| 1 | Missed code judo — complexity preserved when deletion is plausible |
+| 1 | Missed code judo — a **layer or branch can disappear**. Extracting a shared helper (including clones that have not split behavior) is Advisory / Code judo, not this row. Already-diverged clones stay judo, still not #5 |
 | 2 | File crosses the **repo's size limit** without decomposition (default **1k lines** when the repo defines none) |
 | 3 | Spaghetti — ad-hoc `if`s on busy shared paths |
 | 4 | Feature logic in general-purpose modules |
@@ -390,7 +390,7 @@ Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then 
 - `BLOCKERS` — HIGH with open Pass 1 questions, any presumptive blocker, or repo law violated. Proven `[authz]` (live path to IDOR / open storage / leaked secret) and proven `[slopsquat]` (unresolved or typosquat dep on a shipped path) count.
 - `ADVISORY` — no blockers; meaningful simplification still recommended, **or** a product / API-shape / irreversible-data choice still needs a person's judgement (`[needs_judgement]`). `[instruction_injection]` stays here until a live path is shown.
 - `PASS` — risk acceptable; no structural regression; no open product / API-shape / irreversible-data judgement. “It works” is not enough alone. HIGH never `PASS` on structure alone. Style, copy, and docs nits do not by themselves block `PASS`.
-- **Noise filter** — do **not** emit `BLOCKERS` for speculative DoS, missing rate-limits, open-redirect without a session/token steal, memory/CPU exhaustion, or input-validation gaps without a proven impact path. Those stay Advisory or omit. This does not relax `[authz]`, secret leak, data-loss, or false-closure.
+- **Noise filter** — do **not** emit `BLOCKERS` for speculative DoS, missing rate-limits, open-redirect without a session/token steal, memory/CPU exhaustion, or input-validation gaps without a proven impact path. Those stay Advisory or omit. This does not relax **proven** `[authz]` (live attacker path to IDOR / open storage / leaked secret), secret leak, data-loss, or false-closure. Unproven `[authz]` (no attacker path to present the token) stays Advisory `[latent_contract]`.
 
 **Who acts on what:**
 
@@ -412,6 +412,8 @@ Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then 
 4. Dual-ask answered first when the user asked ready / next / roadmap
 5. Change set (base/head) recorded; HIGH used §2c per tier table (never Skip)
 6. `PASS` ⇒ no open product / API-shape / irreversible-data judgement and no `[needs_judgement]`
+7. “Brute-forceable” / keyspace claims show bit-width arithmetic (character count ≠ entropy bits)
+8. Third-party “will 400 / model does not exist” without a current-docs cite → `[unverified_claim]`, not `[must-fix]`
 
 ---
 
