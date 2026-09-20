@@ -14,7 +14,6 @@ Human context and provenance for [`SKILL.md`](./SKILL.md). **Not required readin
 | **Between-file review prompts** (caller/callee assumptions, persistence boundaries, two mental models) | [Buggy Code Review: The Pipeline](https://vibeagentmaking.com/blog/buggy-code-review-the-pipeline/) |
 | Risk by blast radius | [Rahul GS](https://x.com/rahulgs/status/2067257255825686880) |
 | Agent-authored discipline | [Addy Osmani — Agentic Code Review](https://addyosmani.com/blog/agentic-code-review/) |
-| Small-diff review | [Jan Giacomelli](https://jangiacomelli.com/blog/3-tips-for-ai-code-review-that-doesnt-suck/) |
 | Agent-as-reviewer limits (§2b) | [Kilo — prompt sensitivity](https://blog.kilo.ai/p/glm-52s-code-reviews-are-only-as-424) |
 | Structural bar (Pass 3) | Cursor Team Kit `thermo-nuclear-code-quality-review` |
 | Acceleration / review whiplash | [Faros AI](https://www.faros.ai/blog/ai-acceleration-whiplash-takeaways) |
@@ -27,3 +26,4 @@ Human context and provenance for [`SKILL.md`](./SKILL.md). **Not required readin
 | **`[instruction_injection]`** (hidden operator text in agent config; Advisory until a live path) | vietanh.dev (Pillar Security rules-file backdoor). Distinct from Pass 3 #12 (untrusted user input to a product LLM). |
 | **Noise filter** (drop speculative DoS, rate-limit, open-redirect, memory/CPU, unproven validation from `BLOCKERS`) | [anthropics/claude-code-security-review](https://github.com/anthropics/claude-code-security-review) false-positive filter |
 | **Throwaway code / piecemeal growth** (Pass 3 names, not new blocker rows) | [Foote & Yoder — Big Ball of Mud](http://www.laputan.org/mud/) (1999) |
+| **Coverage checklist**; review units; fact-check (drop only when the diff proves the finding wrong); first-pass plan as a coverage ceiling | [alibaba/open-code-review](https://github.com/alibaba/open-code-review) (delegate coverage + grouping + review-filter prompts). Methods only — this skill does not wrap `ocr`. |

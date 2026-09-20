@@ -12,6 +12,15 @@ npx skills check                      # is there anything new?
 npx skills update unified-code-review
 ```
 
+## 1.4.9 — 2026-09-20
+
+- **Pass 0 coverage:** every in-scope path is `reviewed` or `skipped` with a reason. Silent omit is a review defect. Unread HIGH hunks cannot `PASS` on structure.
+- **Review units:** cluster related changed files (impl+test, handler+service, i18n twins) before line-by-line. Pincer still opens unchanged callees.
+- **§2b:** HIGH second pass hunts *new* files/journeys (a first-pass plan is a coverage ceiling); do not verdict after the first `[must-fix]`.
+- **Pre-send:** drop a finding only when the change set proves it wrong (unsure → keep); unanchored behavioral blockers do not ship.
+- Size: dropped the Pass-overview table (duplicate of TL;DR), Pass 3 primary questions (duplicate of the blocker table), Faster-merge Q7 (covered by empirical + reversibility), and a few restated asides. No rule removed except the small-diff tip (advice, not a gate).
+- Sources: Alibaba Open Code Review (coverage / grouping / fact-check methods). Dropped Giacomelli (the small-diff sentence is gone).
+
 ## 1.4.8 — 2026-09-01
 
 - **Live-path gate** (§2b) runs before any `[must-fix]`, not only HIGH — MEDIUM stretched `[authz]` no longer skips it.

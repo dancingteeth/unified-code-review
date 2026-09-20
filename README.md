@@ -22,7 +22,7 @@ Structure-only review (code golf / “make it cleaner”) without risk triage ma
 
 | Pass | Focus |
 | ---- | ----- |
-| **0. Change set** | Establish the diff first (merge-base / `gh pr diff`); record base/head. A green review of the wrong diff is still a rubber stamp. |
+| **0. Change set** | Establish the diff first (merge-base / `gh pr diff`); record base/head; cluster related files; every in-scope path reviewed or skipped with a reason. |
 | **1. Risk** | Blast radius first (auth, payments, migrations ≠ copy tweaks); **authz/IDOR** on changed handlers; failure modes; **journeys at risk**; reversibility; verification gap (`named-unrun` when checks are listed but not run). |
 | **1b. Ops laws** | Only if the repo defines them (`REVIEWS.md` / task / deploy gates). Else skip. |
 | **2. Agent-authored** | Intent evidence; **tests first**; treat agent output as unreviewed external code. |
