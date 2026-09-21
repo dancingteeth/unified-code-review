@@ -12,6 +12,15 @@ npx skills check                      # is there anything new?
 npx skills update unified-code-review
 ```
 
+## 1.4.10 — 2026-09-22
+
+- **Hot path:** a high-traffic or cannot-degrade journey raises effective risk even when the diff is small. Name it; report `hot path: yes | no` on the reversibility line.
+- **Pass 3 advisories** (not new blocker rows): `[parallel_path]` (new way, or wrong system; #7 is only a named util), `[unearned_defense]` (checks, freshness, or fallbacks with no production failure — a deletable layer stays #1, silent swallowing stays #6), `[unproven_removal]` (deletion needs a metric, log, or explicit no-remaining-callers note).
+- **§2b:** a second model still misses these; agreement is not evidence they are absent.
+- **Overlay:** `REVIEWS.md` may state accepted risks and the standard home for a change; quote that law under the finding.
+- Sources: Sean Goedecke (large established codebases; beat the models).
+- Size: dropped the Pass 3 blockquote and the “ambition” line (both restated code judo / “it works”), the duplicated per-journey sentence in question 3, and the §2b parent-duty pointer (the workflow section already says it).
+
 ## 1.4.9 — 2026-09-20
 
 - **Pass 0 coverage:** every in-scope path is `reviewed` or `skipped` with a reason. Silent omit is a review defect. Unread HIGH hunks cannot `PASS` on structure.

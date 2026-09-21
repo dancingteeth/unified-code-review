@@ -23,11 +23,11 @@ Structure-only review (code golf / “make it cleaner”) without risk triage ma
 | Pass | Focus |
 | ---- | ----- |
 | **0. Change set** | Establish the diff first (merge-base / `gh pr diff`); record base/head; cluster related files; every in-scope path reviewed or skipped with a reason. |
-| **1. Risk** | Blast radius first (auth, payments, migrations ≠ copy tweaks); **authz/IDOR** on changed handlers; failure modes; **journeys at risk**; reversibility; verification gap (`named-unrun` when checks are listed but not run). |
+| **1. Risk** | Blast radius first (auth, payments, migrations ≠ copy tweaks); **authz/IDOR** on changed handlers; failure modes; **journeys at risk**; reversibility; a hot or cannot-degrade path raises the tier; verification gap (`named-unrun` when checks are listed but not run). |
 | **1b. Ops laws** | Only if the repo defines them (`REVIEWS.md` / task / deploy gates). Else skip. |
 | **2. Agent-authored** | Intent evidence; **tests first**; treat agent output as unreviewed external code. |
 | **2b / 2c. Pincer** | Trace one level deeper before BLOCKERS. Bidirectional wiring check: what callers assume vs what callees do. Default **Lite**, not Full. |
-| **3. Structure** | Code judo — delete branches/layers that can disappear; presumptive blockers (no tests, assertion gaming, spaghetti, …). |
+| **3. Structure** | Code judo — delete branches/layers that can disappear; presumptive blockers (no tests, assertion gaming, spaghetti, …). Advisory: parallel path, unearned defense, unproven removal. |
 
 The full rubric and output template live in [`skills/unified-code-review/SKILL.md`](./skills/unified-code-review/SKILL.md) — that file is what agents load. The rare Full-tier pincer harness sits in [`FULL-PINCER.md`](./skills/unified-code-review/FULL-PINCER.md) and provenance in [`SOURCES.md`](./skills/unified-code-review/SOURCES.md), both loaded only on demand so the default run stays light.
 
@@ -51,7 +51,7 @@ Repo overlays win on **thresholds and laws**; this skill still owns **process or
 2. **Flag** — the bad pattern, specific enough to match a line.
 3. **Want** — what should be there instead.
 
-Apply only to the pull request’s changed files, not the rest of the tree. Quote the law under any finding it produced. Overlay laws **add** to this skill’s portable defaults (`[authz]`, `[slopsquat]`, `[instruction_injection]`); they do not skip them unless the overlay states a stricter equivalent.
+Apply only to the pull request’s changed files, not the rest of the tree. Quote the law under any finding it produced. Overlay laws **add** to this skill’s portable defaults (`[authz]`, `[slopsquat]`, `[instruction_injection]`, plus `[parallel_path]` / `[unearned_defense]` when the overlay names a standard home or an accepted risk); they do not skip them unless the overlay states a stricter equivalent.
 
 ```markdown
 ### `src/api/**`
@@ -65,6 +65,11 @@ Flag any hook declared elsewhere or named without the prefix.
 ### `**/*.py`
 We are migrating from `requests` to `httpx`. Flag any **new** import of
 `requests` and suggest the `httpx` equivalent.
+
+### `src/worker/**`
+Workers crash and restart; they do not degrade. Flag a new fallback or
+freshness layer with no production failure cited. Feature checks go through
+`FeatureFlags` — flag a local reimplementation.
 ```
 
 A sentence of good intentions (“keep the API clean”) is not a law. Unstructured overlay text still counts when it is already enforceable (file-size caps, task UUIDs, deploy gates).

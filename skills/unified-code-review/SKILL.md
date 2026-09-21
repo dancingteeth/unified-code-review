@@ -4,7 +4,7 @@ description: "Risk-first code review for PRs and branch audits: blast-radius tri
 license: MIT
 metadata:
   author: dancingteeth
-  version: "1.4.9"
+  version: "1.4.10"
 tags:
   - agents
   - documentation
@@ -88,8 +88,8 @@ Repo `REVIEWS.md` may replace or narrow these laws; it does not skip them unless
 
 1. **What could go wrong?** — concrete failure modes, plus the **user journeys** this change puts at risk (login, checkout, webhook replay) — not only which files changed. Copy/docs/internal-only → `none`.
 2. **Line-by-line vs skim?** — which files/hunks need careful reading.
-3. **Empirical checks?** — specific tests, CI command, manual steps (name them here; run only per [Empirical checks](#empirical-checks)). On MEDIUM+ user-facing diffs, name at least one check per at-risk journey.
-4. **Reversibility?** — easy rollback (docs, flag-gated) vs hard/one-way (migrations, irreversible data writes, breaking API removals). Hard to reverse → raise effective risk even when the surface is small.
+3. **Empirical checks?** — specific tests, CI command, manual steps (name them here; run only per [Empirical checks](#empirical-checks)).
+4. **Reversibility?** — easy rollback (docs, flag-gated) vs hard/one-way (migrations, irreversible data writes, breaking API removals). Hard to reverse → raise effective risk even when the surface is small. A high-traffic or cannot-degrade path raises it the same way; name that journey.
 5. **Verification gap?** — do tests cover *this* change class, or only adjacent paths? Green CI ≠ coverage for the hunk under review. Token: `covered` | `adjacent-only` | `named-unrun` | `none`. Use `named-unrun` when this review listed checks but did not execute them (the default).
 6. **Release guardrails?** — feature flag, staging-only, shadow mode.
 
@@ -109,7 +109,7 @@ Check in this order; **stop at the first that exists**:
 2. `AGENTS.md` / `CONTRIBUTING.md` / `.cursor/rules/*` — repo laws and review hints.
 3. **This skill** — portable default when nothing else is defined.
 
-If the repo has `REVIEWS.md`, load it **instead of** the generic risk examples above. Still apply this skill’s **process order** and **portable default laws** (authz / slopsquat / instruction-injection) unless the overlay states a stricter equivalent. Overlays commonly add **project-specific cross-module invariants** or **task traceability** laws; repo thresholds (file size, verdict tiers) **override** this skill’s defaults.
+If the repo has `REVIEWS.md`, load it **instead of** the generic risk examples above. Still apply this skill’s **process order** and **portable default laws** (authz / slopsquat / instruction-injection) unless the overlay states a stricter equivalent. Overlays commonly add **cross-module invariants**, **task traceability**, **accepted risks** (staleness, crash-don’t-degrade, config-once), or the **standard home** for a kind of change — quote that law under `[parallel_path]` / `[unearned_defense]`. Repo thresholds (file size, verdict tiers) **override** this skill’s defaults.
 
 **Overlay law shape** (apply when the overlay states a law this way; unstructured overlay text still counts if it is enforceable): path glob + what to **flag** + what you **want** instead. A sentence of good intentions is not a law. Check **changed** files matching the glob only — not the rest of the repo. Overlay laws **add** to this skill’s passes; they do not skip Pass 1–3. When a finding comes from an overlay law, **quote the law** under the finding.
 
@@ -178,9 +178,7 @@ When this session authored the diff and the host can start a subagent or new thr
 3. **Cross-module claims** — list affected files; line-by-line each boundary; prefer targeted tests / empirical checks over single-pass inference.
 4. **Second pass when stakes are high** — hunt **new** files/journeys, not restated findings (a first-pass plan is a coverage ceiling). Finish coverage before verdict; do not stop at the first `[must-fix]`. Wiring (fallback chains, deploy, auth middleware, event → side-effect) still gets a consistency re-run.
 
-Do **not** treat more reasoning effort or a longer prompt as a substitute for (1)–(4). Prompt framing and call-chain depth move results more than “think harder.”
-
-**Parent agent duty:** when delegating Pass 3, complete Pass 1 + §2b + §2c at the appropriate tier on HIGH-risk wiring **before** trusting a subagent `PASS` — see [Workflow with subagents](#workflow-with-subagents).
+Do **not** treat more reasoning effort, a longer prompt, or a second model as a substitute for (1)–(4). A second model still misses a `[parallel_path]` and still blesses an `[unearned_defense]`; agreement is not evidence those are absent. Prompt framing and call-chain depth move results more than “think harder.”
 
 ### Pass 2c — Pincer review (call-graph)
 
@@ -240,13 +238,15 @@ Name concrete checks in Pass 1 and after non-confirmed reconciles. On MEDIUM+ us
 
 ## Pass 3 — Structural bar (thermo-nuclear)
 
-After Pass 1 (and 2 when agent-authored), audit for **code judo**: whole branches, helpers, or layers that can **disappear**.
+After Pass 1 (and 2 when agent-authored), audit flagged hunks for **code judo**.
 
-> Perform a deep code quality audit of the change. Rethink structure so behavior stays the same but the implementation becomes **simpler, smaller, and more direct**. Measure twice, cut once.
+Named anti-patterns (Advisory, not new blocker rows): **throwaway code** — a prototype merged as the permanent path; **piecemeal growth** — expedient patches that erode the layer. Prefer deletion over another patch.
 
-Named anti-patterns (same bar, not new blocker rows): **throwaway code** — a prototype merged as the permanent path; **piecemeal growth** — expedient patches that erode the layer. Prefer deletion over another patch.
-
-**Ambition over politeness.** Do not rubber-stamp “it works.”
+| Tag | Flag | Want |
+| --- | --- | --- |
+| `[parallel_path]` | A new way of doing what neighbors already do (auth, errors, pagination, feature checks), or the change is in the wrong system. #7 is only “a named util exists” | The existing pattern, unless the PR says why it does not fit |
+| `[unearned_defense]` | Redundant checks, freshness machinery, or fallbacks with no production failure mode, especially where the local pattern is to crash. Not #6 (silent swallowing). A whole layer that can disappear stays #1 | Delete it. “Technically this could be wrong” is not evidence |
+| `[unproven_removal]` | Non-trivial deletion backed only by grep or tests | A metric, log, or an explicit no-remaining-callers note |
 
 ### Presumptive blockers
 
@@ -312,7 +312,7 @@ HIGH | MEDIUM | LOW
 - **Journeys at risk:** … | none
 - **Line-by-line:** …
 - **Empirical checks:** … (required checks named here; run only if host permits and user asked)
-- **Reversibility:** easy | hard/one-way — …
+- **Reversibility:** easy | hard/one-way — …; **hot path:** yes | no
 - **Verification gap:** covered | adjacent-only | named-unrun | none — …
 - **Release guardrails:** feature flag | staging-only | shadow | none
 - **Coverage:** … reviewed / skipped (`reason`)
@@ -329,7 +329,7 @@ Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then 
 - [must-fix] … — given … / when … / then … (live path: …)
 
 ### Advisory
-- [should-fix] … (use `[example_bound_fix]`, `[latent_contract]`, `[preexisting]`, `[unverified_claim]`, `[needs_judgement]`, `[authz]`, `[slopsquat]`, or `[instruction_injection]` when applicable)
+- [should-fix] … (use `[example_bound_fix]`, `[latent_contract]`, `[preexisting]`, `[unverified_claim]`, `[needs_judgement]`, `[authz]`, `[slopsquat]`, `[instruction_injection]`, `[parallel_path]`, `[unearned_defense]`, or `[unproven_removal]` when applicable)
 ```
 
 ### Add-on block (emit only if the corresponding pass ran)
@@ -363,7 +363,7 @@ Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then 
 **Verdict rules:**
 
 - `BLOCKERS` — HIGH with open Pass 1 questions, any presumptive blocker, or repo law violated. Proven `[authz]` (live path to IDOR / open storage / leaked secret) and proven `[slopsquat]` (unresolved or typosquat dep on a shipped path) count.
-- `ADVISORY` — no blockers; meaningful simplification still recommended, **or** a product / API-shape / irreversible-data choice still needs a person's judgement (`[needs_judgement]`). `[instruction_injection]` stays here until a live path is shown.
+- `ADVISORY` — no blockers; meaningful simplification still recommended, **or** a product / API-shape / irreversible-data choice still needs a person's judgement (`[needs_judgement]`). `[instruction_injection]` stays here until a live path is shown. `[parallel_path]`, `[unearned_defense]`, and `[unproven_removal]` stay here.
 - `PASS` — risk acceptable; no structural regression; no open product / API-shape / irreversible-data judgement. “It works” is not enough alone. HIGH never `PASS` on structure alone or with unread HIGH hunks. Style, copy, and docs nits do not by themselves block `PASS`.
 - **Noise filter** — do **not** emit `BLOCKERS` for speculative DoS, missing rate-limits, open-redirect without a session/token steal, memory/CPU exhaustion, or input-validation gaps without a proven impact path. Those stay Advisory or omit. This does not relax **proven** `[authz]` (live attacker path to IDOR / open storage / leaked secret), secret leak, data-loss, or false-closure. Unproven `[authz]` (no attacker path to present the token) stays Advisory `[latent_contract]`.
 
