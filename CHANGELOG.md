@@ -12,6 +12,14 @@ npx skills check                      # is there anything new?
 npx skills update unified-code-review
 ```
 
+## 1.4.11 — 2026-10-05
+
+- **One promotion path.** Routing now says how to read. Pincer depth stays in the §2c tier table. `PASS` / `ADVISORY` / `BLOCKERS` stay in Verdict rules, checked again by the pre-send checklist. The old consistency-lock restatement of those gates is gone; the one rule it alone carried — `### Verdict` is the only sensor verdict — sits on Verdict rules.
+- **Domains** beside the tier (`auth`, `data`, `webhook`, `infra`, or another short word; `none` for copy/docs). Domain picks questions the skill already asks. It does not set tier or pincer depth.
+- **History candidates** on MEDIUM and HIGH: `git blame -L` or `git log -L` on touched hunks. A reverted fix or a broken stated invariant is a candidate (SHA + line), not a finding, until the live-path gate and, when the claim is wiring, §2c. A reverted fix is not `[preexisting]`. Skip on LOW and on files the diff creates. Report line: `History: skipped | none | candidate`.
+- **Candidate finders** are optional and host-agnostic. A finder may return `file:line` and a claimed failure. Only this rubric promotes it. Finder agreement is not evidence.
+- Sources: rdeepak history agent; HermeticOrmus domain-before-checklist. Methods only.
+
 ## 1.4.10 — 2026-09-22
 
 - **Hot path:** a high-traffic or cannot-degrade journey raises effective risk even when the diff is small. Name it; report `hot path: yes | no` on the reversibility line.

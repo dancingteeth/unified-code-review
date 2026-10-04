@@ -23,7 +23,7 @@ Structure-only review (code golf / “make it cleaner”) without risk triage ma
 | Pass | Focus |
 | ---- | ----- |
 | **0. Change set** | Establish the diff first (merge-base / `gh pr diff`); record base/head; cluster related files; every in-scope path reviewed or skipped with a reason. |
-| **1. Risk** | Blast radius first (auth, payments, migrations ≠ copy tweaks); **authz/IDOR** on changed handlers; failure modes; **journeys at risk**; reversibility; a hot or cannot-degrade path raises the tier; verification gap (`named-unrun` when checks are listed but not run). |
+| **1. Risk** | Blast radius first (auth, payments, migrations ≠ copy tweaks); **domains** beside the tier (which existing questions apply); **authz/IDOR** on changed handlers; failure modes; **journeys at risk**; reversibility; a hot or cannot-degrade path raises the tier; verification gap (`named-unrun` when checks are listed but not run). On MEDIUM/HIGH, a **history candidate** (`git blame` / `git log -L`) stays a candidate until the live-path gate. |
 | **1b. Ops laws** | Only if the repo defines them (`REVIEWS.md` / task / deploy gates). Else skip. |
 | **2. Agent-authored** | Intent evidence; **tests first**; treat agent output as unreviewed external code. |
 | **2b / 2c. Pincer** | Trace one level deeper before BLOCKERS. Bidirectional wiring check: what callers assume vs what callees do. Default **Lite**, not Full. |

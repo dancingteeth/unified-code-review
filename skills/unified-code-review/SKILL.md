@@ -4,7 +4,7 @@ description: "Risk-first code review for PRs and branch audits: blast-radius tri
 license: MIT
 metadata:
   author: dancingteeth
-  version: "1.4.10"
+  version: "1.4.11"
 tags:
   - agents
   - documentation
@@ -25,7 +25,7 @@ Three **core** passes (1 Risk → 2 Agent-authored when applicable → 3 Structu
 ## TL;DR — quick start
 
 0. **Pass 0** — establish the change set (merge-base / `gh pr diff`); record base/head; cluster **review units**; every in-scope path `reviewed` or `skipped` with a reason.
-1. **Pass 1** — classify risk by blast radius; name journeys at risk; answer the Pass 1 questions; decide line-by-line vs skim.
+1. **Pass 1** — classify risk by blast radius; name domains and journeys at risk; answer the Pass 1 questions. On MEDIUM/HIGH, history notes stay candidates until the live-path gate. Decide line-by-line vs skim.
 2. **Pass 1b** — only if the repo overlay defines enforceable workflow laws (task/deploy/issue). Else skip.
 3. **Pass 2** — if agent-authored: intent evidence, test hunks first.
 4. **§2b** — **always** (you are the reviewing LLM): trace one level deeper before `BLOCKERS`.
@@ -41,7 +41,7 @@ Prefer all passes in one thread. When this session authored the diff, an optiona
 | --- | --- |
 | **Code judo** | Prefer deletion: whole branches, helpers, or layers that can disappear while behavior stays the same — simpler, smaller, more direct. |
 | **Pincer (§2c)** | Bidirectional check on wiring: what callers assume vs what callees actually do. Catches integration bugs invisible in single-file review. |
-| **Lite / Standard / Full** | Pincer depth. Default **Lite**. **Full** is rare and loads [`FULL-PINCER.md`](./FULL-PINCER.md). |
+| **Lite / Standard / Full** | Pincer depth. The §2c tier table is the only criteria. Default **Lite**. **Full** loads [`FULL-PINCER.md`](./FULL-PINCER.md). |
 
 **Pincer catch example:** callers treat `getUser(id)` as “throws if missing”; callee returns `null`. Silent NPE / wrong branch downstream. Reconcile: role hypothesis fails — fix contract or call sites (do not emit `BLOCKERS` on “throws” without opening the callee).
 
@@ -70,6 +70,8 @@ Classify by **blast radius**, not diff size. The examples below are the **portab
 
 When a change spans levels, report the **highest** and map hunks to levels.
 
+**Domains** sit beside the tier. Name what the diff is (`auth`, `data`, `webhook`, `infra`, or another short word that fits; `none` for copy/docs). Domain only picks questions this skill already asks — `[authz]` and secrets, migration reversibility, webhook wiring, deploy and hot path. It does not set the tier or the pincer depth. Do not import another checklist.
+
 ### Portable default laws (changed files only)
 
 HIGH already names auth/secrets as blast radius. These are the line-level flags. Same shape as overlay laws: applies-to + flag + want. Quote the law under the finding.
@@ -95,9 +97,17 @@ Repo `REVIEWS.md` may replace or narrow these laws; it does not skip them unless
 
 ### Routing
 
-- **HIGH** → default `BLOCKERS` until questions answered; never `PASS` on structure alone; **§2c per tier table** (Standard or Full — never Skip).
-- **MEDIUM** → line-by-line on boundaries; **§2c per tier table** when the diff touches shared helpers or multi-route behavior; tests required for behavior changes. Open product / API-shape / irreversible-data judgement → cannot `PASS` (see Verdict rules).
-- **LOW** → structure + spot-check; lean on CI; **§2c Skip** unless a cross-module smell is obvious (then Lite). Style, copy, and docs nits do not by themselves block `PASS`.
+Reading depth only. Pincer tier is the §2c table. What may be `PASS`, `ADVISORY`, or `BLOCKERS` is Verdict rules and the pre-send checklist.
+
+- **HIGH** — line-by-line. Open Pass 1 questions stay `BLOCKERS`.
+- **MEDIUM** — line-by-line on boundaries. Behavior changes need tests.
+- **LOW** — structure plus a spot-check; lean on CI.
+
+### History candidates (MEDIUM and HIGH)
+
+On touched hunks, run `git blame -L` or `git log -L` for that line range or function, not the whole file. Note a reverted fix, or a commit message or comment that stated an invariant this diff breaks. Record the SHA and the line.
+
+That note is a **candidate**, not a finding. Promote it only through the §2b live-path gate, and through §2c when the claim is about wiring. A reverted fix is not `[preexisting]` — this diff reopens it. If the gate fails, leave it on the History line. Skip on LOW, and on files this diff creates.
 
 ---
 
@@ -265,7 +275,7 @@ Block unless clearly justified:
 | 9 | No tests for non-trivial behavior change |
 | 10 | Test assertion gaming — weakened expectations to go green |
 | 11 | CI / guard weakening — skipped tests, lowered thresholds, disabled lint |
-| 12 | Prompt injection surface — untrusted *user* input to a product LLM without policy (not `[instruction_injection]` on agent config — that stays Advisory until a live path) |
+| 12 | Prompt injection surface — untrusted *user* input to a product LLM without policy. Agent-config operator text is `[instruction_injection]`, not this row |
 | 13 | Integration contract mismatch — caller hypothesis contradicts callee reality (§2c pinch) on MEDIUM+ paths |
 | 14 | **Task traceability** (repo overlay) — overlay defines it and agent-authored non-trivial code has no linked task reconciliation |
 
@@ -304,12 +314,14 @@ Block unless clearly justified:
 ```markdown
 ### Risk
 HIGH | MEDIUM | LOW
+- **Domains:** auth, data | … | none
 
 ### What could go wrong?
 - …
 
 ### Review depth
 - **Journeys at risk:** … | none
+- **History:** skipped | none | candidate — `<sha>` …
 - **Line-by-line:** …
 - **Empirical checks:** … (required checks named here; run only if host permits and user asked)
 - **Reversibility:** easy | hard/one-way — …; **hot path:** yes | no
@@ -360,21 +372,18 @@ Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then 
 - Only if verdict is `PASS` or `ADVISORY`, and the list is short. (Omit on `BLOCKERS`.)
 ```
 
-**Verdict rules:**
+### Verdict rules
+
+`### Verdict` is the only sensor verdict. Section-scoped verdicts (Task coverage, reconcile) never substitute for it. Empty-section and `PASS` gates are checked again in the pre-send checklist.
 
 - `BLOCKERS` — HIGH with open Pass 1 questions, any presumptive blocker, or repo law violated. Proven `[authz]` (live path to IDOR / open storage / leaked secret) and proven `[slopsquat]` (unresolved or typosquat dep on a shipped path) count.
 - `ADVISORY` — no blockers; meaningful simplification still recommended, **or** a product / API-shape / irreversible-data choice still needs a person's judgement (`[needs_judgement]`). `[instruction_injection]` stays here until a live path is shown. `[parallel_path]`, `[unearned_defense]`, and `[unproven_removal]` stay here.
 - `PASS` — risk acceptable; no structural regression; no open product / API-shape / irreversible-data judgement. “It works” is not enough alone. HIGH never `PASS` on structure alone or with unread HIGH hunks. Style, copy, and docs nits do not by themselves block `PASS`.
 - **Noise filter** — do **not** emit `BLOCKERS` for speculative DoS, missing rate-limits, open-redirect without a session/token steal, memory/CPU exhaustion, or input-validation gaps without a proven impact path. Those stay Advisory or omit. This does not relax **proven** `[authz]` (live attacker path to IDOR / open storage / leaked secret), secret leak, data-loss, or false-closure. Unproven `[authz]` (no attacker path to present the token) stays Advisory `[latent_contract]`.
 
-**Consistency lock (non-negotiable):**
+### Pre-send checklist
 
-- `### Verdict` is the **only** sensor verdict; section-scoped verdicts (Task coverage, reconcile) never substitute for it
-- Non-empty `### Blockers` ⇒ `### Verdict` **must** be `BLOCKERS`
-- `ADVISORY` or `PASS` ⇒ omit `### Blockers` entirely (move items to Advisory / Nits)
-- Open product / API-shape / irreversible-data judgement (including `[needs_judgement]` or decision audit `Stand behind in prod? no`) ⇒ cannot be `PASS`; if the gaps are must-fix, verdict is `BLOCKERS`
-
-**Pre-send checklist** (run before finishing — especially on smaller / faster models):
+Run before finishing — especially on smaller / faster models:
 
 1. `### Blockers` omitted iff verdict ≠ `BLOCKERS`; no empty or placeholder-filled sections
 2. Each **behavioral** `[must-fix]` cites a live production path this diff can reach (not tests-only, not base-only), a given / when / then repro, and a line in the change set or an opened callee (unanchored → omit or Advisory). Structural blockers cite a line. `[preexisting]` stays Advisory. Drop a finding only when the change set proves it wrong; unsure → keep.
@@ -384,6 +393,7 @@ Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then 
 6. `PASS` ⇒ no open product / API-shape / irreversible-data judgement and no `[needs_judgement]`
 7. “Brute-forceable” / keyspace claims show bit-width arithmetic (character count ≠ entropy bits)
 8. Third-party “will 400 / model does not exist” without a current-docs cite → `[unverified_claim]`, not `[must-fix]`
+9. A History `candidate` is not a `[must-fix]` unless item 2 holds for that claim
 
 ---
 
@@ -396,6 +406,8 @@ Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then 
 1. Parent loads **this skill** (and repo `REVIEWS.md` if it exists).
 2. Parent completes **Pass 0 + Pass 1** (+ Pass 1b when the overlay defines operational laws; Pass 2 if agent-authored; **§2b always**; **§2c** when wiring is at stake).
 3. Invoke the subagent with diff + file contents **and** explicit instruction: apply Pass 3 only on Pass-1-flagged hunks; output must include the Pass 1 summary + this skill’s verdict. **Subagent output alone is not enough** for HIGH-risk cross-module wiring — the parent verifies §2b and §2c when triggered.
+
+**Candidate finders (optional):** a host that can fan out may run extra finders over the same diff. Each returns `file:line` and a claimed failure. Those are candidates. Only this rubric promotes one: the §2b live-path gate, then §2c when wiring is at stake. Agreement among finders is not evidence. This skill names no host tool and no second-model protocol.
 
 **If no structure subagent is available:** run Pass 3 in this same thread. Never omit the structural bar.
 
