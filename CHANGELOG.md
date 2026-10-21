@@ -12,6 +12,13 @@ npx skills check                      # is there anything new?
 npx skills update unified-code-review
 ```
 
+## 1.4.12 — 2026-10-21
+
+- **Pass 1:** `[payments]` and `[pii]` portable laws — money/subscription and personal-data lifecycle hunks are **always HIGH**; quote the tag on findings in those surfaces.
+- **Pass 2:** **Explain-it-back** — PR body must cover design choices and edge/unusual cases and match the current diff; missing or stale → Advisory `[explain_it_back]` (never a blocker alone).
+- **Pass 3:** **Duplicate check** — new function/helper/module: search the repo for same job; clear duplicate → Advisory `[duplicate_impl]`; presumptive blocker only on Pass-1-flagged hunks per existing rules (e.g. #7).
+- Sources: IEEE Spectrum AI code review article (methods only). SKILL.md tightened elsewhere (~5% growth cap).
+
 ## 1.4.11 — 2026-10-05
 
 - **One promotion path.** Routing now says how to read. Pincer depth stays in the §2c tier table. `PASS` / `ADVISORY` / `BLOCKERS` stay in Verdict rules, checked again by the pre-send checklist. The old consistency-lock restatement of those gates is gone; the one rule it alone carried — `### Verdict` is the only sensor verdict — sits on Verdict rules.
