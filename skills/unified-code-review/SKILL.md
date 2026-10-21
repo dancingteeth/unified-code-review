@@ -86,7 +86,7 @@ HIGH already names auth/secrets as blast radius. These are the line-level flags.
 | Changed payment, billing, refund, subscription, checkout, or money-moving webhook logic | `[payments]` — charges, entitlements, invoices, or subscription state | **HIGH** by default unless `REVIEWS.md` narrows; line-by-line; name money journeys; quote `[payments]` on findings here |
 | Changed PII collection, storage, logging of personal data, retention, export, or deletion | `[pii]` — personal data lifecycle | **HIGH** by default unless `REVIEWS.md` narrows; line-by-line; name subjects and retention/erasure paths; quote `[pii]` on findings here |
 
-Repo `REVIEWS.md` may replace or narrow these laws; it does not skip them unless it states a stricter equivalent; it may narrow the `[payments]`/`[pii]` tiers.
+Repo `REVIEWS.md` may replace or narrow these laws only with a stricter equivalent, except that it may lower the `[payments]`/`[pii]` tiers below HIGH.
 
 ### Answer before deep review
 
@@ -121,7 +121,7 @@ Check in this order; **stop at the first that exists**:
 2. `AGENTS.md` / `CONTRIBUTING.md` / `.cursor/rules/*` — repo laws and review hints.
 3. **This skill** — portable default when nothing else is defined.
 
-If the repo has `REVIEWS.md`, load it **instead of** the generic risk examples above. Still apply this skill’s **process order** and **portable default laws** (authz / slopsquat / instruction-injection / payments / pii) unless the overlay states a stricter equivalent; it may narrow the `[payments]`/`[pii]` tiers. Overlays commonly add **cross-module invariants**, **task traceability**, **accepted risks** (staleness, crash-don’t-degrade, config-once), or the **standard home** for a kind of change — quote that law under `[parallel_path]` / `[unearned_defense]`. Repo thresholds (file size, verdict tiers) **override** this skill’s defaults.
+If the repo has `REVIEWS.md`, load it **instead of** the generic risk examples above. Still apply this skill’s **process order** and **portable default laws** (authz / slopsquat / instruction-injection / payments / pii); `REVIEWS.md` may replace or narrow these laws only with a stricter equivalent, except that it may lower the `[payments]`/`[pii]` tiers below HIGH. Overlays commonly add **cross-module invariants**, **task traceability**, **accepted risks** (staleness, crash-don’t-degrade, config-once), or the **standard home** for a kind of change — quote that law under `[parallel_path]` / `[unearned_defense]`. Repo thresholds (file size, verdict tiers) **override** this skill’s defaults.
 
 **Overlay law shape** (apply when the overlay states a law this way; unstructured overlay text still counts if it is enforceable): path glob + what to **flag** + what you **want** instead. A sentence of good intentions is not a law. Check **changed** files matching the glob only — not the rest of the repo. Overlay laws **add** to this skill’s passes; they do not skip Pass 1–3. When a finding comes from an overlay law, **quote the law** under the finding.
 
