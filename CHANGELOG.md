@@ -14,7 +14,7 @@ npx skills update unified-code-review
 
 ## 1.4.12 — 2026-10-21
 
-- **Pass 1:** `[payments]` and `[pii]` portable laws — **HIGH by default** on money/subscription and personal-data lifecycle hunks (`REVIEWS.md` may narrow, including tier); quote the tag on findings in those surfaces.
+- **Pass 1:** `[payments]` and `[pii]` portable laws — **HIGH by default** on money/subscription and personal-data lifecycle hunks (`REVIEWS.md` may narrow those tiers only; other portable laws need a stricter equivalent); quote the tag on findings in those surfaces.
 - **Pass 2:** **Explain-it-back** — PR body must cover design choices and edge/unusual cases and match the current diff; missing or stale → Advisory `[explain_it_back]` (never a blocker alone).
 - **Pass 3:** **Duplicate check** — new function/helper/module: search the repo for same job; clear duplicate on a Pass-1-flagged hunk → Advisory `[parallel_path]` **and** presumptive blocker **#7** (tag stays Advisory-only); elsewhere `[parallel_path]` Advisory only.
 - Sources: IEEE Spectrum AI code review article (methods only). SKILL.md tightened elsewhere (~5% growth cap).
