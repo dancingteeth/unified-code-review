@@ -86,7 +86,7 @@ HIGH already names auth/secrets as blast radius. These are the line-level flags.
 | Changed payment, billing, refund, subscription, checkout, or money-moving webhook logic | `[payments]` — charges, entitlements, invoices, or subscription state | **HIGH** by default unless `REVIEWS.md` narrows; line-by-line; name money journeys; quote `[payments]` on findings here |
 | Changed PII collection, storage, logging of personal data, retention, export, or deletion | `[pii]` — personal data lifecycle | **HIGH** by default unless `REVIEWS.md` narrows; line-by-line; name subjects and retention/erasure paths; quote `[pii]` on findings here |
 
-Repo `REVIEWS.md` may replace or narrow these laws, **including those tiers**; it does not skip them unless it states a stricter equivalent.
+Repo `REVIEWS.md` may replace or narrow these laws; it does not skip them unless it states a stricter equivalent; it may narrow the `[payments]`/`[pii]` tiers.
 
 ### Answer before deep review
 
@@ -121,7 +121,7 @@ Check in this order; **stop at the first that exists**:
 2. `AGENTS.md` / `CONTRIBUTING.md` / `.cursor/rules/*` — repo laws and review hints.
 3. **This skill** — portable default when nothing else is defined.
 
-If the repo has `REVIEWS.md`, load it **instead of** the generic risk examples above. Still apply this skill’s **process order** and **portable default laws** (authz / slopsquat / instruction-injection / payments / pii) unless the overlay replaces or narrows them, **including those tiers**. Overlays commonly add **cross-module invariants**, **task traceability**, **accepted risks** (staleness, crash-don’t-degrade, config-once), or the **standard home** for a kind of change — quote that law under `[parallel_path]` / `[unearned_defense]`. Repo thresholds (file size, verdict tiers) **override** this skill’s defaults.
+If the repo has `REVIEWS.md`, load it **instead of** the generic risk examples above. Still apply this skill’s **process order** and **portable default laws** (authz / slopsquat / instruction-injection / payments / pii) unless the overlay states a stricter equivalent; it may narrow the `[payments]`/`[pii]` tiers. Overlays commonly add **cross-module invariants**, **task traceability**, **accepted risks** (staleness, crash-don’t-degrade, config-once), or the **standard home** for a kind of change — quote that law under `[parallel_path]` / `[unearned_defense]`. Repo thresholds (file size, verdict tiers) **override** this skill’s defaults.
 
 **Overlay law shape** (apply when the overlay states a law this way; unstructured overlay text still counts if it is enforceable): path glob + what to **flag** + what you **want** instead. A sentence of good intentions is not a law. Check **changed** files matching the glob only — not the rest of the repo. Overlay laws **add** to this skill’s passes; they do not skip Pass 1–3. When a finding comes from an overlay law, **quote the law** under the finding.
 
@@ -260,7 +260,7 @@ Named anti-patterns (Advisory, not new blocker rows): **throwaway code** — pro
 
 | Tag | Flag | Want |
 | --- | --- | --- |
-| `[parallel_path]` | A new way of doing what neighbors already do (auth, errors, pagination, feature checks); wrong system; or **new symbol duplicating an existing repo capability found by search**. On a Pass-1-flagged hunk with a clear canonical util → Advisory tag **and** presumptive blocker **#7** (tag stays Advisory-only). Elsewhere Advisory only — #7 is “a named util exists” | The existing pattern or util, unless the PR says why it does not fit |
+| `[parallel_path]` | A new way of doing what neighbors already do (auth, errors, pagination, feature checks); wrong system; or **new symbol duplicating an existing repo capability found by search**. On a Pass-1-flagged hunk with a clear canonical util → Advisory tag **and** presumptive blocker **#7** (tag stays Advisory-only). Elsewhere Advisory only (#7 needs a named canonical util). | The existing pattern or util, unless the PR says why it does not fit |
 | `[unearned_defense]` | Redundant checks, freshness machinery, or fallbacks with no production failure mode, especially where the local pattern is to crash. Not #6 (silent swallowing). A whole layer that can disappear stays #1 | Delete it. “Technically this could be wrong” is not evidence |
 | `[unproven_removal]` | Non-trivial deletion backed only by grep or tests | A metric, log, or an explicit no-remaining-callers note |
 
