@@ -12,6 +12,15 @@ npx skills check                      # is there anything new?
 npx skills update unified-code-review
 ```
 
+## 1.4.13 — 2026-10-24
+
+- **Re-review** (Pass 0): when an earlier UCR report on the PR exists, the change set is its head → the new head. Findings it already raised are not re-emitted. A failure the new commits do not introduce or widen is `[preexisting]` at most. Round 3+ with new `BLOCKERS` also gets Advisory `[needs_judgement]` — rethink the approach instead of patching again. Report line: `re-review: prior head`.
+- **Class of bug:** a behavioral `[must-fix]` lists the other places in the change set with the same pattern (`also at: … | none`), so one round fixes the class.
+- **`[intent_drift]`** (Pass 2): hunks the stated intent does not explain → Advisory. A diff declared behavior-preserving (refactor, cleanup, flag removal) that changes observable behavior is a behavioral finding, Blocker on MEDIUM+. Flag removal keeps the branch that matches the rolled-out value.
+- **Overlay:** `REVIEW.md` is read as `REVIEWS.md`.
+- **Candidate finders:** restored the line that this skill names no host tool and no second-model or voting protocol (dropped in the 1.4.12 trim).
+- Sources: Anthropic Claude Code team (code review convergence); Uber AutoClean / CodeCourt (intent drift, preserved semantics). Methods only.
+
 ## 1.4.12 — 2026-10-21
 
 - **Pass 1:** `[payments]` and `[pii]` portable laws — **HIGH by default** on money/subscription and personal-data lifecycle hunks (`REVIEWS.md` may replace or narrow these laws only with a stricter equivalent, except that it may lower the `[payments]`/`[pii]` tiers below HIGH); quote the tag on findings in those surfaces.

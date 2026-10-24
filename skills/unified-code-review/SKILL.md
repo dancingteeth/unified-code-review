@@ -4,7 +4,7 @@ description: "Risk-first code review for PRs and branch audits: blast-radius tri
 license: MIT
 metadata:
   author: dancingteeth
-  version: "1.4.12"
+  version: "1.4.13"
 tags:
   - agents
   - documentation
@@ -51,6 +51,7 @@ Prefer all passes in one thread. When this session authored the diff, an optiona
 - **PR:** `gh pr diff <n>` or `gh pr diff --patch`.
 - **Whole-tree audit** only when the user asks for one — say so explicitly in the report.
 - Record **base** and **head** SHAs (or PR number + head SHA) in the report.
+- **Re-review:** when an earlier UCR report on this PR exists, the change set is its head → the new head. Do not re-emit findings that report already raised. A failure the new commits do not introduce or widen is `[preexisting]` at most. Round 3 or later with new `BLOCKERS` → also Advisory `[needs_judgement]`: the approach needs a person, not another patch.
 - **Review units:** cluster related changed files before line-by-line (impl+test, handler+service, i18n twins, rename+call sites). Sibling changed files are context-only; pincer still opens unchanged callees.
 - **Coverage is mandatory.** Every in-scope path is `reviewed` or `skipped` with a reason (unread, too large, binary, generated). Silent omit is a review defect. Unread HIGH hunks cannot `PASS` on structure.
 - **Size ≠ risk.** Note a large change set if it changes how you read; file/line count does **not** set the Pass 1 tier.
@@ -117,7 +118,7 @@ That note is a **candidate**, not a finding. Promote it only through the §2b li
 
 Check in this order; **stop at the first that exists**:
 
-1. `REVIEWS.md` at repo root — canonical for that project.
+1. `REVIEWS.md` at repo root — canonical for that project. `REVIEW.md` is the same file under another name; below, `REVIEWS.md` means either.
 2. `AGENTS.md` / `CONTRIBUTING.md` / `.cursor/rules/*` — repo laws and review hints.
 3. **This skill** — portable default when nothing else is defined.
 
@@ -166,6 +167,8 @@ Treat agent output as **unreviewed external contribution** — plausible code, m
 3. **CI / guard diffs** — skipped tests, lowered coverage, disabled lint.
 
 **Example-bound fixes:** flag when a change handles the demonstrated case (fixture, repro, sample path) but not the general class (other callers, inputs, error modes). Emit as Advisory `[example_bound_fix]` unless it leaves a MEDIUM+ failure mode open — then Blocker.
+
+**Intent drift:** hunks the stated intent does not explain → Advisory `[intent_drift]`. A diff declared behavior-preserving (refactor, cleanup, flag removal) that changes observable behavior is a behavioral finding — Blocker on MEDIUM+. Flag removal: the kept branch must match the flag's rolled-out value.
 
 **Decision audit (optional — MEDIUM+ agent-authored, or when the same agent authored and reviews):** short dump of product/API/error/scope/test choices only — not style nits. For each: why, alternative considered (or “none”), confidence `high | medium | low` + what would falsify it. End with: stand behind in prod? `yes | no` — if no, exact gaps. Do not rewrite code in this step; surface decisions for the human.
 
@@ -334,20 +337,20 @@ HIGH | MEDIUM | LOW
 - **Verification gap:** covered | adjacent-only | named-unrun | none — …
 - **Release guardrails:** feature flag | staging-only | shadow | none
 - **Coverage:** … reviewed / skipped (`reason`)
-- **Change set:** base `…` → head `…` (or PR #N)
+- **Change set:** base `…` → head `…` (or PR #N; re-review: prior head `…`)
 
 ### Verdict
 PASS | ADVISORY | BLOCKERS
 ```
 
-Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then plus a live path this diff can reach. **Structural** presumptive blockers (#1–#7, #14) cite a line only — do not invent a repro.
+Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then plus a live path this diff can reach, and lists the other places in the change set with the same pattern so one round fixes the class. **Structural** presumptive blockers (#1–#7, #14) cite a line only — do not invent a repro.
 
 ```markdown
 ### Blockers
-- [must-fix] … — given … / when … / then … (live path: …)
+- [must-fix] … — given … / when … / then … (live path: …; also at: … | none)
 
 ### Advisory
-- [should-fix] … (use `[example_bound_fix]`, `[explain_it_back]`, `[latent_contract]`, `[preexisting]`, `[unverified_claim]`, `[needs_judgement]`, `[authz]`, `[slopsquat]`, `[instruction_injection]`, `[payments]`, `[pii]`, `[parallel_path]`, `[unearned_defense]`, or `[unproven_removal]` when applicable)
+- [should-fix] … (use `[example_bound_fix]`, `[explain_it_back]`, `[intent_drift]`, `[latent_contract]`, `[preexisting]`, `[unverified_claim]`, `[needs_judgement]`, `[authz]`, `[slopsquat]`, `[instruction_injection]`, `[payments]`, `[pii]`, `[parallel_path]`, `[unearned_defense]`, or `[unproven_removal]` when applicable)
 ```
 
 ### Add-on block (emit only if the corresponding pass ran)
@@ -413,7 +416,7 @@ Run before finishing — especially on smaller / faster models:
 2. Parent completes **Pass 0 + Pass 1** (+ Pass 1b when the overlay defines operational laws; Pass 2 if agent-authored; **§2b always**; **§2c** when wiring is at stake).
 3. Invoke the subagent with diff + file contents **and** explicit instruction: apply Pass 3 only on Pass-1-flagged hunks; output must include the Pass 1 summary + this skill’s verdict. **Subagent output alone is not enough** for HIGH-risk cross-module wiring — the parent verifies §2b and §2c when triggered.
 
-**Candidate finders (optional):** fan-out finders return `file:line` claims — candidates only; promote via §2b then §2c **when wiring is at stake**. Finder agreement is not evidence.
+**Candidate finders (optional):** fan-out finders return `file:line` claims — candidates only; promote via §2b then §2c **when wiring is at stake**. Finder agreement is not evidence; this skill names no host tool and no second-model or voting protocol.
 
 **If no structure subagent is available:** run Pass 3 in this same thread. Never omit the structural bar.
 

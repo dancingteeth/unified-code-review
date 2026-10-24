@@ -41,7 +41,7 @@ Structure-only rubrics (Cursor Team Kit's thermo-nuclear subagent, or an equival
 | **This skill**, then a structure pass (or one agent with this skill loaded) | Full unified review |
 | **Repo-provided review runner** (when the repo ships one that inlines its `REVIEWS.md`) | Full repo rubric |
 
-Without a repo runner, load this skill plus the repo's `REVIEWS.md` if present. If no structure subagent is registered in your host, the skill runs Pass 3 in-thread rather than skipping it.
+Without a repo runner, load this skill plus the repo's `REVIEWS.md` (or `REVIEW.md`) if present. If no structure subagent is registered in your host, the skill runs Pass 3 in-thread rather than skipping it.
 
 ## Writing a `REVIEWS.md`
 
