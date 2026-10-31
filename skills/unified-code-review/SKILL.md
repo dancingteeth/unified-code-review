@@ -4,7 +4,7 @@ description: "Risk-first code review for PRs and branch audits: blast-radius tri
 license: MIT
 metadata:
   author: dancingteeth
-  version: "1.4.13"
+  version: "1.4.14"
 tags:
   - agents
   - documentation
@@ -51,7 +51,7 @@ Prefer all passes in one thread. When this session authored the diff, an optiona
 - **PR:** `gh pr diff <n>` or `gh pr diff --patch`.
 - **Whole-tree audit** only when the user asks for one — say so explicitly in the report.
 - Record **base** and **head** SHAs (or PR number + head SHA) in the report.
-- **Re-review:** when an earlier UCR report on this PR exists, the change set is its head → the new head. Do not re-emit findings that report already raised. A failure the new commits do not introduce or widen is `[preexisting]` at most. Round 3 or later with new `BLOCKERS` → also Advisory `[needs_judgement]`: the approach needs a person, not another patch.
+- **Re-review:** change set is prior report head → new head. Do not re-emit raised findings. A failure the new commits do not introduce or widen is `[preexisting]` at most. Round 3+ with new `BLOCKERS` → also Advisory `[needs_judgement]` (needs a person, not another patch).
 - **Review units:** cluster related changed files before line-by-line (impl+test, handler+service, i18n twins, rename+call sites). Sibling changed files are context-only; pincer still opens unchanged callees.
 - **Coverage is mandatory.** Every in-scope path is `reviewed` or `skipped` with a reason (unread, too large, binary, generated). Silent omit is a review defect. Unread HIGH hunks cannot `PASS` on structure.
 - **Size ≠ risk.** Note a large change set if it changes how you read; file/line count does **not** set the Pass 1 tier.
@@ -135,9 +135,9 @@ If the repo has `REVIEWS.md`, load it **instead of** the generic risk examples a
 1. Load the repo’s task-session skill if the overlay references one (path per overlay).
 2. Run the overlay’s falsifiable checks before Pass 3 — intent link, scope reconciliation (`done` | `pending` | `task add`), no orphan non-trivial code hunks.
 3. Apply the overlay’s **verdict tier** — a repo may make agent-authored `src/`** gaps a presumptive blocker; portable default is `ADVISORY` unless the repo says otherwise.
-4. List exact `task add …` command strings for follow-ups, even if not executed in-session.
+4. List exact `task add …` strings for follow-ups, even if unexecuted.
 
-**Empirical pattern:** `task list` / `task <uuid> info` (or the repo’s equivalent CLI) — cite **UUID** in **Task coverage**; numeric ID is not a stable link.
+**Empirical pattern:** `task list` / `task <uuid> info` (or repo equivalent) — cite **UUID**; numeric ID is not a stable link.
 
 If the repo rubric already contains a full task-traceability section, **that section wins** over this summary.
 
@@ -242,14 +242,14 @@ If the tier table selects **Full** but [`FULL-PINCER.md`](./FULL-PINCER.md) is u
 
 #### How to execute (Lite / Standard)
 
-1. List **changed symbols** and **call edges** (grep, LSP, graph tool).
+1. List **changed symbols** and **call edges** (grep, LSP, graph tool); note inferred intent plus 2–3 ways that intent could be mis-implemented, and check those edges first.
 2. **Lite:** open the callee once (§2b step 1); run between-file prompts on that edge; stop.
 3. **Standard:** bottom-up summary for touched callees → top-down role hypothesis from call sites → reconcile (pinch). Isolation between passes is ideal, not mandatory.
 4. **Empirical check** — one per non-confirmed reconcile (see below).
 
 ### Empirical checks
 
-Name concrete checks in Pass 1 and after non-confirmed reconciles. On MEDIUM+ user-facing diffs, name at least one check per at-risk journey (happy path is enough; add an edge or adversarial case only for auth, payments, or state-machine changes). **Run** a check only if the host permits **and** the user asked for verification; otherwise emit it as a **required check** under `Empirical checks` in the report and leave execution to the human. Do not start fixing, inventing tests, or spinning up the app as part of the sensor emit (pipeline contract).
+Name concrete checks in Pass 1 and after non-confirmed reconciles. On MEDIUM+ user-facing diffs, name at least one check per at-risk journey (happy path is enough; add an edge or adversarial case only for auth, payments, or state-machine changes). Frame each open behavioral question as intended-change? yes/no, not read-this-code. **Run** a check only if the host permits **and** the user asked for verification; otherwise emit it as a **required check** under `Empirical checks` and leave execution to the human. Do not start fixing, inventing tests, or spinning up the app as part of the sensor emit (pipeline contract).
 
 ---
 
@@ -343,7 +343,7 @@ HIGH | MEDIUM | LOW
 PASS | ADVISORY | BLOCKERS
 ```
 
-Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then plus a live path this diff can reach, and lists the other places in the change set with the same pattern so one round fixes the class. **Structural** presumptive blockers (#1–#7, #14) cite a line only — do not invent a repro.
+Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then plus parent-vs-child delta (parent did X, child now does Y), a live path this diff can reach, and lists the other places in the change set with the same pattern so one round fixes the class. **Structural** presumptive blockers (#1–#7, #14) cite a line only — do not invent a repro.
 
 ```markdown
 ### Blockers
@@ -395,7 +395,7 @@ Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then 
 Run before finishing — especially on smaller / faster models:
 
 1. `### Blockers` omitted iff verdict ≠ `BLOCKERS`; no empty or placeholder-filled sections
-2. Each **behavioral** `[must-fix]` cites a live production path this diff can reach (not tests-only, not base-only), a given / when / then repro, and a line in the change set or an opened callee (unanchored → omit or Advisory). Structural blockers cite a line. `[preexisting]` stays Advisory. Drop a finding only when the change set proves it wrong; unsure → keep.
+2. Each **behavioral** `[must-fix]` cites a live production path this diff can reach (not tests-only, not base-only), given / when / then plus parent-vs-child delta, and a line in the change set or an opened callee (unanchored → omit or Advisory). Structural blockers cite a line. `[preexisting]` stays Advisory. Drop a finding only when the change set proves it wrong; unsure → keep.
 3. Pincer `confirmed` ⇒ no findings on that edge
 4. Dual-ask answered first when the user asked ready / next / roadmap
 5. Change set (base/head) recorded; Coverage row complete; HIGH used §2c per tier table (never Skip)

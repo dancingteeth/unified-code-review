@@ -12,6 +12,13 @@ npx skills check                      # is there anything new?
 npx skills update unified-code-review
 ```
 
+## 1.4.14 — 2026-10-31
+
+- **Catching-test delta:** a behavioral `[must-fix]` states the parent-vs-child delta (parent did X, child now does Y) with given/when/then and a live path; the pre-send checklist enforces it.
+- **§2c:** note inferred intent plus 2–3 ways that intent could be mis-implemented, and check those edges first.
+- **Empirical checks:** open behavioral questions framed as intended-change? yes/no, not read-this-code.
+- Sources: Meta Catching JiTTests (methods only — no test generation, batch harness, or judge ensemble). SKILL.md size-neutral (tightened re-review / task-traceability wording).
+
 ## 1.4.13 — 2026-10-24
 
 - **Re-review** (Pass 0): when an earlier UCR report on the PR exists, the change set is its head → the new head. Findings it already raised are not re-emitted. A failure the new commits do not introduce or widen is `[preexisting]` at most. Round 3+ with new `BLOCKERS` also gets Advisory `[needs_judgement]` — rethink the approach instead of patching again. Report line: `re-review: prior head`.
