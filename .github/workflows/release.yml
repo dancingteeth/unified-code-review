@@ -1,0 +1,51 @@
+name: Release
+
+# Tags and publishes a GitHub Release when the version in plugin.json changes on main.
+on:
+  push:
+    branches: [main]
+    paths:
+      - plugin.json
+      - skills/unified-code-review/SKILL.md
+      - CHANGELOG.md
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read and verify version
+        id: v
+        run: |
+          plugin=$(jq -r .version plugin.json)
+          skill=$(grep -m1 -E '^\s*version:' skills/unified-code-review/SKILL.md | sed -E 's/.*version:\s*"?([^"]+)"?.*/\1/')
+          if [ "$plugin" != "$skill" ]; then
+            echo "::error::plugin.json ($plugin) and SKILL.md ($skill) versions differ"
+            exit 1
+          fi
+          if ! grep -q "^## $plugin " CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no '## $plugin' section"
+            exit 1
+          fi
+          echo "version=$plugin" >> "$GITHUB_OUTPUT"
+
+      - name: Create release if missing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "v$VERSION already released"
+            exit 0
+          fi
+          awk -v h="## $VERSION " 'index($0,h)==1{f=1;next} f&&/^## /{exit} f' CHANGELOG.md > notes.md
+          gh release create "v$VERSION" \
+            --target "$GITHUB_SHA" \
+            --title "$VERSION" \
+            --notes-file notes.md \
+            --latest
