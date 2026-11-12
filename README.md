@@ -27,7 +27,7 @@ Structure-only review (code golf / “make it cleaner”) without risk triage ma
 | **1b. Ops laws** | Only if the repo defines them (`REVIEWS.md` / task / deploy gates). Else skip. |
 | **2. Agent-authored** | Intent evidence; **tests first**; treat agent output as unreviewed external code. |
 | **2b / 2c. Pincer** | Trace one level deeper before BLOCKERS. Bidirectional wiring check: what callers assume vs what callees do. Default **Lite**, not Full. |
-| **3. Structure** | Code judo — delete branches/layers that can disappear; presumptive blockers (no tests, assertion gaming, spaghetti, …). Advisory: parallel path, unearned defense, unproven removal. |
+| **3. Structure** | Code judo — delete branches/layers that can disappear; presumptive blockers (no tests, assertion gaming, spaghetti, …). Advisory: parallel path (incl. reimplemented platform primitives), unearned defense, unproven removal, blind path. |
 
 The full rubric and output template live in [`skills/unified-code-review/SKILL.md`](./skills/unified-code-review/SKILL.md) — that file is what agents load. The rare Full-tier pincer harness sits in [`FULL-PINCER.md`](./skills/unified-code-review/FULL-PINCER.md) and provenance in [`SOURCES.md`](./skills/unified-code-review/SOURCES.md), both loaded only on demand so the default run stays light.
 

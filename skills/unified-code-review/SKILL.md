@@ -4,7 +4,7 @@ description: "Risk-first code review for PRs and branch audits: blast-radius tri
 license: MIT
 metadata:
   author: dancingteeth
-  version: "1.4.14"
+  version: "1.4.15"
 tags:
   - agents
   - documentation
@@ -95,7 +95,7 @@ Repo `REVIEWS.md` may replace or narrow these laws only with a stricter equivale
 2. **Line-by-line vs skim?** — which files/hunks need careful reading.
 3. **Empirical checks?** — specific tests, CI command, manual steps (name them here; run only per [Empirical checks](#empirical-checks)).
 4. **Reversibility?** — easy rollback (docs, flag-gated) vs hard/one-way (migrations, irreversible data writes, breaking API removals). Hard to reverse → raise effective risk even when the surface is small. A high-traffic or cannot-degrade path raises it the same way; name that journey.
-5. **Verification gap?** — do tests cover *this* change class, or only adjacent paths? Green CI ≠ coverage for the hunk under review. Token: `covered` | `adjacent-only` | `named-unrun` | `none`. Use `named-unrun` when this review listed checks but did not execute them (the default).
+5. **Verification gap?** — do tests cover *this* change class, or only adjacent paths? Green CI ≠ coverage for the hunk under review. Token: `covered` | `adjacent-only` | `named-unrun` | `none`. Use `named-unrun` when this review listed checks but did not execute them (the default). Also `adjacent-only`: new tests that only hit accessors or assert a mock's own return → Advisory `[coverage_padding]` (sole test of a non-trivial behavior change → **#9**); one actor when the change branches on role, tenant, plan, or locale → Advisory `[single_actor]`.
 6. **Release guardrails?** — feature flag, staging-only, shadow mode.
 
 ### Routing
@@ -259,13 +259,14 @@ After Pass 1 (and 2 when agent-authored), audit flagged hunks for **code judo**.
 
 Named anti-patterns (Advisory, not new blocker rows): **throwaway code** — prototype merged as permanent path; **piecemeal growth** — expedient patches that erode the layer. Prefer deletion over another patch.
 
-**Duplicate check:** when the diff **adds** a function, helper, or module, search the repo (names + behaviour) for an existing one with the same job — agents often re-implement what they cannot see. Fold hits into `[parallel_path]` below.
+**Duplicate check:** when the diff **adds** a function, helper, or module, search the repo (names + behaviour) for an existing one with the same job, and check whether the platform already does it (CSS `:hover` over JS mouse events, a DB constraint, a stdlib call) — agents often re-implement what they cannot see. Fold hits into `[parallel_path]` below.
 
 | Tag | Flag | Want |
 | --- | --- | --- |
-| `[parallel_path]` | A new way of doing what neighbors already do (auth, errors, pagination, feature checks); wrong system; or **new symbol duplicating an existing repo capability found by search**. On a Pass-1-flagged hunk with a clear canonical util → Advisory tag **and** presumptive blocker **#7** (tag stays Advisory-only). Elsewhere Advisory only (#7 needs a named canonical util). | The existing pattern or util, unless the PR says why it does not fit |
+| `[parallel_path]` | A new way of doing what neighbors already do (auth, errors, pagination, feature checks); wrong system; or **new symbol duplicating an existing repo capability found by search** or a platform/framework primitive. On a Pass-1-flagged hunk with a clear canonical util or primitive → Advisory tag **and** presumptive blocker **#7** (tag stays Advisory-only). Elsewhere Advisory only (#7 needs a named canonical util). | The existing pattern or util, unless the PR says why it does not fit |
 | `[unearned_defense]` | Redundant checks, freshness machinery, or fallbacks with no production failure mode, especially where the local pattern is to crash. Not #6 (silent swallowing). A whole layer that can disappear stays #1 | Delete it. “Technically this could be wrong” is not evidence |
 | `[unproven_removal]` | Non-trivial deletion backed only by grep or tests | A metric, log, or an explicit no-remaining-callers note |
+| `[blind_path]` | New user-facing failure mode (network call, parse, external write) that nothing reports — no error capture, log, or metric where neighbors have one — so only users see it. Not #6 (caught and hidden); a crash the tracker sees is fine | Report it the way neighbors do |
 
 ### Presumptive blockers
 
@@ -279,7 +280,7 @@ Block unless clearly justified:
 | 4 | Feature logic in general-purpose modules |
 | 5 | Unearned abstraction — pass-through wrappers, magic handlers |
 | 6 | Boundary mud — `any`, cast chains, silent fallbacks |
-| 7 | Bespoke helper where a canonical util exists |
+| 7 | Bespoke helper where a canonical util or platform primitive exists |
 | 8 | Test dishonesty — title vs assertion mismatch |
 | 9 | No tests for non-trivial behavior change |
 | 10 | Test assertion gaming — weakened expectations to go green |
@@ -350,7 +351,7 @@ Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then 
 - [must-fix] … — given … / when … / then … (live path: …; also at: … | none)
 
 ### Advisory
-- [should-fix] … (use `[example_bound_fix]`, `[explain_it_back]`, `[intent_drift]`, `[latent_contract]`, `[preexisting]`, `[unverified_claim]`, `[needs_judgement]`, `[authz]`, `[slopsquat]`, `[instruction_injection]`, `[payments]`, `[pii]`, `[parallel_path]`, `[unearned_defense]`, or `[unproven_removal]` when applicable)
+- [should-fix] … (use `[example_bound_fix]`, `[explain_it_back]`, `[intent_drift]`, `[latent_contract]`, `[preexisting]`, `[unverified_claim]`, `[needs_judgement]`, `[authz]`, `[slopsquat]`, `[instruction_injection]`, `[payments]`, `[pii]`, `[parallel_path]`, `[unearned_defense]`, `[unproven_removal]`, `[blind_path]`, `[coverage_padding]`, or `[single_actor]` when applicable)
 ```
 
 ### Add-on block (emit only if the corresponding pass ran)
@@ -386,7 +387,7 @@ Then, only when non-empty. **Behavioral** `[must-fix]` uses given / when / then 
 `### Verdict` is the only sensor verdict. Section-scoped verdicts (Task coverage, reconcile) never substitute for it. Empty-section and `PASS` gates are checked again in the pre-send checklist.
 
 - `BLOCKERS` — HIGH with open Pass 1 questions, any presumptive blocker, or repo law violated. Proven `[authz]` (live path to IDOR / open storage / leaked secret) and proven `[slopsquat]` (unresolved or typosquat dep on a shipped path) count.
-- `ADVISORY` — no blockers; meaningful simplification still recommended, **or** a product / API-shape / irreversible-data choice still needs a person's judgement (`[needs_judgement]`). `[explain_it_back]`, `[instruction_injection]` (until a live path), `[parallel_path]`, `[unearned_defense]`, and `[unproven_removal]` stay here (including repo-search duplicates — **#7** is the blocker row, not the tag).
+- `ADVISORY` — no blockers; meaningful simplification still recommended, **or** a product / API-shape / irreversible-data choice still needs a person's judgement (`[needs_judgement]`). `[explain_it_back]`, `[instruction_injection]` (until a live path), `[parallel_path]`, `[unearned_defense]`, `[unproven_removal]`, `[blind_path]`, `[coverage_padding]`, and `[single_actor]` stay here (including repo-search duplicates — **#7** is the blocker row, not the tag).
 - `PASS` — risk acceptable; no structural regression; no open product / API-shape / irreversible-data judgement. “It works” is not enough alone. HIGH never `PASS` on structure alone or with unread HIGH hunks. Style, copy, and docs nits do not by themselves block `PASS`.
 - **Noise filter** — do **not** emit `BLOCKERS` for speculative DoS, missing rate-limits, open-redirect without a session/token steal, memory/CPU exhaustion, or input-validation gaps without a proven impact path. Those stay Advisory or omit. This does not relax **proven** `[authz]` (live attacker path to IDOR / open storage / leaked secret), secret leak, data-loss, or false-closure. Unproven `[authz]` (no attacker path to present the token) stays Advisory `[latent_contract]`.
 

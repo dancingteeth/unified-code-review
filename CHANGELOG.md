@@ -12,6 +12,13 @@ npx skills check                      # is there anything new?
 npx skills update unified-code-review
 ```
 
+## 1.4.15 — 2026-11-12
+
+- **Verification gap** (Pass 1): two new kinds of `adjacent-only` test. Advisory `[coverage_padding]` is for new tests that only hit accessors or assert what a mock returns. It becomes **#9** when it is the only test of a non-trivial behavior change. Advisory `[single_actor]` is for tests that use one actor when the change branches on role, tenant, plan, or locale.
+- **Platform primitives** (Pass 3): the duplicate check now also asks whether the platform already does the job (CSS `:hover`, a DB constraint, a stdlib call). `[parallel_path]` and **#7** cover platform and framework primitives as well as repo utilities.
+- **`[blind_path]`** (Pass 3, Advisory): a new user-facing failure mode that nothing reports, where neighboring code has an error tracker, log, or metric, so only users see it. Separate from #6 (an error that is caught and hidden). A crash the tracker sees is fine.
+- Sources: Evan X. Merz, "AI usage generates a fragile codebase" (anecdotal, so Advisory only). Methods only.
+
 ## 1.4.14 — 2026-10-31
 
 - **Catching-test delta:** a behavioral `[must-fix]` states the parent-vs-child delta (parent did X, child now does Y) with given/when/then and a live path; the pre-send checklist enforces it.
